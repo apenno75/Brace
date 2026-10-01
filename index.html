@@ -40,7 +40,7 @@ label{color:var(--mute);font-size:.85rem}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL='https://erukzvrtjnvyzjvfuirn.supabase.co';
-const VAPID='BKUF6FNwP6eF5btFp_pnu8c3VJOOtkLJn6WS21yDOUw1wh-mPGsbnVDI8XXBD-qQrG9-XYHjHw4-b5hda4kNCBw';
+const VAPID='INCOLLA_QUI_LA_CHIAVE_PUBBLICA_VAPID';
 const SUPABASE_KEY='sb_publishable_FDhQ03affjzeyhCHuoKulg_Rp7PdyLM';
 
 // l:1 = sensuale, l:2 = audace/esplicito (solo se la stanza è in modalità audace)
@@ -70,7 +70,7 @@ const $=document.getElementById('app');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
 let pid=store.get('brace-pid');if(!pid){pid=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c=='x'?r:(r&3|8)).toString(16)}));store.set('brace-pid',pid)}
-let code=store.get('brace-code'),st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,last='',err='',busy=false,sig='',timer=null;
+let code=store.get('brace-code'),hm=null,st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,last='',err='',busy=false,sig='',timer=null;
 
 async function rpc(fn,args){const{data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
 const b64=s=>{s=(s+'='.repeat((4-s.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
@@ -87,11 +87,11 @@ async function create(name,hour,lvl){
  const[a,b]=hour.split(':');const d=new Date();d.setHours(+a,+b,0,0);if(d<Date.now()+36e5)d.setDate(d.getDate()+1);
  enter(await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl}))}
 async function join(name,c){
- c=c.trim().toUpperCase();
+ c=c.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
  if(!(await rpc('brace_join_room',{p_code:c,p_player:pid,p_name:name}))){err='Codice non valido o stanza al completo';busy=false;return draw()}
  enter(c)}
-function enter(c){code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};last='';poll();startTimer()}
-function leave(){clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
+function enter(c){hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};last='';poll();startTimer()}
+function leave(){hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
 function startTimer(){clearInterval(timer);timer=setInterval(poll,3000)}
 async function poll(){
  if(!code)return;
@@ -105,20 +105,27 @@ async function poll(){
 
 function draw(){$.innerHTML=view();wire()}
 function view(){
- if(!code)return `<div class="tag">per due, consensuali, su due telefoni</div><h1>Brace</h1>
-<p>Ognuno risponde in segreto sul proprio telefono. Vedrete solo ciò che coincide. Poi la giornata scalda piano, fino alla serata.</p>
-<div class="card"><label>Il tuo nome</label><input type="text" id="nm" maxlength="20" value="${esc(store.get('brace-name')||'')}">
+ if(!code){
+ const intro=`<div class="tag">per due, consensuali, su due telefoni</div><h1>Brace</h1>
+<p>Ognuno risponde in segreto sul proprio telefono. Vedrete solo ciò che coincide. Poi la giornata scalda piano, fino alla serata.</p>`;
+ const name=`<label>Il tuo nome</label><input type="text" id="nm" maxlength="20" value="${esc(store.get('brace-name')||'')}">`;
+ const e=`<p class="note err">${esc(err)}</p>`;
+ if(hm==='new')return intro+`<div class="card">${name}
 <label>Ora della serata</label><input type="time" id="hr" value="21:00">
 <label class="chk"><input type="checkbox" id="lv"> Modalità audace (carte esplicite: attivatela solo se siete entrambi d'accordo)</label>
-<button id="mk" ${busy?'disabled':''}>Crea una stanza</button></div>
-<div class="card"><label>Hai già un codice?</label><input type="text" id="cd" maxlength="4" placeholder="ABCD" style="text-transform:uppercase"><button class="alt" id="jn" ${busy?'disabled':''}>Entra nella stanza</button></div>
-<p class="note err">${esc(err)}</p>`;
+<p class="note">Solo chi crea la stanza sceglie ora e modalità. L'altro giocatore le vedrà ma non potrà cambiarle.</p>
+<button id="mk" ${busy?'disabled':''}>Crea la stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
+ if(hm==='join')return intro+`<div class="card">${name}
+<label>Codice della stanza</label><input type="text" id="cd" maxlength="6" placeholder="ABCD" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
+<p class="note">Ora della serata e modalità le ha scelte chi ha creato la stanza.</p>
+<button id="jn" ${busy?'disabled':''}>Entra nella stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
+ return intro+`<div class="card"><button id="gn">Creo una stanza</button><button class="alt" id="gj">Ho un codice</button></div>`+e}
  if(!st)return `<p>Carico la stanza ${esc(code)}…</p><p class="note err">${esc(err)}</p><button class="alt" id="lv2">Esci</button>`;
  if(!st.partner)return `<div class="tag">stanza creata</div><h2>Manda questo codice al tuo partner</h2><div class="code">${esc(code)}</div>
 <p>Deve aprire questa stessa pagina e inserire il codice.</p><button class="alt" id="lv2">Esci</button>`;
  const d=deck();
  if(!st.me.fin){if(qi>=d.length)return `<p>Salvo le risposte…</p>`;
-  return `<div class="note">${qi+1} / ${d.length}</div><div class="card big">${esc(CARDS[d[qi]].t)}</div>
+  return `<div class="note">Serata alle ${new Date(st.ev).toTimeString().slice(0,5)} · modalità audace ${st.lvl===2?'attiva':'non attiva'} (decisa da chi ha creato la stanza)</div><div class="note">${qi+1} / ${d.length}</div><div class="card big">${esc(CARDS[d[qi]].t)}</div>
 <button data-a="s">Sì</button><button class="alt" data-a="f">Forse</button><button class="alt" data-a="m">Mai</button>
 <p class="note">Il tuo «mai» non viene mostrato a nessuno, nemmeno al server dopo il confronto.</p>`}
  if(!st.partner.fin)return `<div class="tag">risposte inviate</div><h2>Aspettiamo ${esc(st.partner.name)}</h2><p>Quando avrà finito, il mazzo comparirà qui in automatico.</p>`;
@@ -146,6 +153,10 @@ function wire(){const q=id=>document.getElementById(id);
  if(q('mk'))q('mk').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();create(n,q('hr').value||'21:00',q('lv').checked?2:1).catch(fail)};
  if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();join(n,q('cd').value).catch(fail)};
  if(q('lv2'))q('lv2').onclick=leave;
+ if(q('nm'))q('nm').oninput=()=>store.set('brace-name',q('nm').value);
+ if(q('gn'))q('gn').onclick=()=>{hm='new';draw()};
+ if(q('gj'))q('gj').onclick=()=>{hm='join';draw()};
+ if(q('bk'))q('bk').onclick=()=>{hm=null;err='';draw()};
  if(q('pn'))q('pn').onclick=()=>enablePush().catch(fail);
  $.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=deck()[qi];if(b.dataset.a!=='m')tmp[b.dataset.a].push(i);qi++;
   if(qi>=deck().length){draw();rpc('brace_submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
