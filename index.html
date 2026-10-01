@@ -160,8 +160,8 @@ ${cxBtn}
 ${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p>`;
  return h}
 function wire(){const q=id=>document.getElementById(id);
- if(q('mk'))q('mk').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();create(n,q('hr').value||'21:00',q('lv').checked?2:1).catch(fail)};
- if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();join(n,q('cd').value).catch(fail)};
+ if(q('mk'))q('mk').onclick=()=>{const n=q('nm').value||'Io',h=q('hr').value||'21:00',l=q('lv').checked?2:1;store.set('brace-name',n);busy=true;draw();create(n,h,l).catch(fail)};
+ if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io',c=q('cd').value;store.set('brace-name',n);busy=true;draw();join(n,c).catch(fail)};
  if(q('lv2'))q('lv2').onclick=leave;
  if(q('cx'))q('cx').onclick=cancelRoom;
  if(q('nm'))q('nm').oninput=()=>store.set('brace-name',q('nm').value);
