@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Brace</title>
 <meta name="theme-color" content="#1a0f14">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 :root{--bg:#1a0f14;--card:#2a1820;--ink:#f6e9ec;--mute:#b99aa4;--acc:#e0455f;--acc2:#ff8a5c;--line:#43262f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#fff4f3;--card:#fff;--ink:#3a1520;--mute:#8a5a66;--acc:#d6304c;--acc2:#f0703e;--line:#f1d3d6}}
@@ -38,6 +40,7 @@ label{color:var(--mute);font-size:.85rem}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL='https://erukzvrtjnvyzjvfuirn.supabase.co';
+const VAPID='INCOLLA_QUI_LA_CHIAVE_PUBBLICA_VAPID';
 const SUPABASE_KEY='sb_publishable_FDhQ03affjzeyhCHuoKulg_Rp7PdyLM';
 
 // l:1 = sensuale, l:2 = audace/esplicito (solo se la stanza è in modalità audace)
@@ -70,6 +73,13 @@ let pid=store.get('brace-pid');if(!pid){pid=(crypto.randomUUID?crypto.randomUUID
 let code=store.get('brace-code'),st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,last='',err='',busy=false,sig='',timer=null;
 
 async function rpc(fn,args){const{data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
+const b64=s=>{s=(s+'='.repeat((4-s.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
+const pushOk='serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+async function enablePush(){
+ const reg=await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;
+ if(await Notification.requestPermission()!=='granted'){err='Notifiche non consentite dal telefono';return draw()}
+ const sub=(await reg.pushManager.getSubscription())||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(VAPID)});
+ await rpc('brace_save_push',{p_code:code,p_player:pid,p_sub:sub.toJSON()});store.set('brace-push',code);err='';draw()}
 const fail=e=>{err='Errore: '+(e.message||e);busy=false;draw()};
 const deck=()=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].l<=st.lvl);
 
@@ -130,12 +140,13 @@ function play(){
 <button id="pk" ${y.length?'':'disabled'}>Pesca dal mazzo</button>${f.length?'<button class="alt" id="mb">Sblocca un «forse» in comune</button>':''}</div>`;
  h+=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(c=>`<div class="m">${esc(c)}</div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>
 <button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
-<p class="note">Non ci sono notifiche push: le missioni compaiono quando riaprite la pagina.</p>`;
+${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p>`;
  return h}
 function wire(){const q=id=>document.getElementById(id);
  if(q('mk'))q('mk').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();create(n,q('hr').value||'21:00',q('lv').checked?2:1).catch(fail)};
  if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();join(n,q('cd').value).catch(fail)};
  if(q('lv2'))q('lv2').onclick=leave;
+ if(q('pn'))q('pn').onclick=()=>enablePush().catch(fail);
  $.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=deck()[qi];if(b.dataset.a!=='m')tmp[b.dataset.a].push(i);qi++;
   if(qi>=deck().length){draw();rpc('brace_submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
  $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('brace_mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
