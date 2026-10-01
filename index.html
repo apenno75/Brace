@@ -184,7 +184,7 @@ const dkey=c=>'brace-drawn-'+c;
 const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
 const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
 let conf={given:[],got:[]},confOk=false;
-const APP_V=7;
+const APP_V=8;
 // se sul telefono c'è una versione vecchia in cache, scarica quella nuova e ricarica (una volta per sessione)
 (async()=>{try{const r=await fetch(location.href.split('#')[0].split('?')[0],{cache:'no-store'});const t=await r.text();const m=t.match(/const APP_V=(\d+)/);
  if(m&&+m[1]>APP_V&&!sessionStorage.getItem('brace-rl')){sessionStorage.setItem('brace-rl','1');if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}location.reload()}}catch(e){}})();
@@ -240,7 +240,7 @@ const deck=()=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].l<=st.lvl);
 const cxBtn='<button class="alt" id="cx">Annulla stanza</button>';
 
 async function create(name,hour,lvl){
- const[a,b]=hour.split(':');const d=new Date();d.setHours(+a,+b,0,0);if(d<Date.now()+36e5)d.setDate(d.getDate()+1);
+ const[a,b]=hour.split(':');const d=new Date();d.setHours(+a,+b,0,0);if(d<=Date.now())d.setDate(d.getDate()+1);
  const c=await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl});
  store.del(dkey(c));enter(c)}
 async function join(name,c){
