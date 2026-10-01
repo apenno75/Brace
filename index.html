@@ -44,6 +44,14 @@ label{color:var(--mute);font-size:.85rem}
 .note{font-size:.8rem;color:var(--mute)}
 .err{color:#ffb08a}
 
+/* menù a schede */
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.hd h2{margin:0}.hd .sm{margin:0 0 4px}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px -18px 8px;padding:8px 18px;background:rgba(13,3,7,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.tb{position:relative;width:100%;margin:0;padding:10px 2px;font-size:.8rem;letter-spacing:.01em;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);box-shadow:none;color:var(--mute)}
+.tb.on{background:linear-gradient(135deg,#ff2d6b,#c4124a 62%,#8f0b3a);color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(255,31,90,.38)}
+.bdg{position:absolute;top:-6px;right:-3px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--gold);color:#2a030d;font-size:.7rem;line-height:18px;font-weight:700}
+
 /* disegni */
 .il{display:block;filter:drop-shadow(0 0 7px rgba(255,45,107,.55))}
 .il path,.il circle,.il ellipse,.il rect{fill:none;stroke:var(--gold);stroke-width:var(--sw,2.6);stroke-linecap:round;stroke-linejoin:round}
@@ -167,7 +175,7 @@ const $=document.getElementById('app');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
 let pid=store.get('brace-pid');if(!pid){pid=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c=='x'?r:(r&3|8)).toString(16)}));store.set('brace-pid',pid)}
-let code=store.get('brace-code'),hm=null,st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,lastI=-1,lastMaybe=false,fresh=false,fx=false,err='',busy=false,sig='',timer=null;
+let tab='m',code=store.get('brace-code'),hm=null,st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,lastI=-1,lastMaybe=false,fresh=false,fx=false,err='',busy=false,sig='',timer=null;
 // carte già pescate su questo telefono (restano memorizzate anche se ricarichi la pagina)
 let drawn={s:[],f:[],last:''};
 const dkey=c=>'brace-drawn-'+c;
@@ -176,7 +184,7 @@ const dkey=c=>'brace-drawn-'+c;
 const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
 const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
 let conf={given:[],got:[]},confOk=false;
-const APP_V=6;
+const APP_V=7;
 // se sul telefono c'è una versione vecchia in cache, scarica quella nuova e ricarica (una volta per sessione)
 (async()=>{try{const r=await fetch(location.href.split('#')[0].split('?')[0],{cache:'no-store'});const t=await r.text();const m=t.match(/const APP_V=(\d+)/);
  if(m&&+m[1]>APP_V&&!sessionStorage.getItem('brace-rl')){sessionStorage.setItem('brace-rl','1');if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}location.reload()}}catch(e){}})();
@@ -242,7 +250,7 @@ async function join(name,c){
  if(r==='full'){err='Stanza al completo: ci sono già due giocatori';busy=false;return draw()}
  if(r!=='ok'){err='Risposta inattesa dal server';busy=false;return draw()}
  enter(c)}
-function enter(c){conf={given:[],got:[]};confOk=false;hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
+function enter(c){tab='m';conf={given:[],got:[]};confOk=false;hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
 function leave(){musicStop();conf={given:[],got:[]};confOk=false;hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
 async function cancelRoom(){
  if(!confirm("Annullare la stanza? Verrà cancellata anche per l'altro giocatore."))return;
@@ -294,28 +302,41 @@ function play(){
  const t0=ev-ms[0].o*36e5,tp=Math.max(0,Math.min(1,(now-t0)/(ev-t0)));
  const tension=Math.round((tp*.5+(mine.length+theirs.length)/(ms.length*2)*.5)*100),open=now>=ev;
  const hh=new Date(ev).toTimeString().slice(0,5);
- let h=`<div style="text-align:right"><button class="alt sm" id="mu">${mMuted()?'🔇 Musica spenta':'🔊 Musica attiva'}</button></div><div class="tag">tensione condivisa</div><h2>${tension}%</h2><div class="bar"><i style="width:${tension}%"></i></div>
-<p>Serata alle ${hh}. ${esc(P)} ha completato ${theirs.length} missioni su ${ms.length}.</p><div class="card"><div class="tag">le tue missioni segrete</div>`;
+ const head=`<div class="hd"><div><div class="tag">tensione condivisa</div><h2>${tension}%</h2></div><button class="alt sm" id="mu">${mMuted()?'🔇 Musica spenta':'🔊 Musica attiva'}</button></div><div class="bar"><i style="width:${tension}%"></i></div>
+<p class="note" style="margin:.2em 0 .6em">Serata alle ${hh}. ${esc(P)} ha completato ${theirs.length} missioni su ${ms.length}.</p>`;
+ // --- le tue missioni segrete ---
+ let sM=`<div class="card"><div class="tag">le tue missioni segrete</div>`;
  ms.forEach((m,k)=>{const at=new Date(ev-m.o*36e5).toTimeString().slice(0,5);const dn=mine.includes(k);
   const cf=conf.got.includes(k),showBtn=confOk?!cf:!dn,txt=esc(m.t.replace(/\{P\}/g,P));
-  h+=un[k]?`<div class="m"><span>${cf?'✓✓ ':dn?'✓ ':''}${txt}${dn&&!cf&&confOk?`<br><small class="note">⏳ In attesa della conferma di ${esc(P)}</small>`:''}${cf?`<br><small class="note">Confermata da ${esc(P)}</small>`:''}</span>${showBtn?`<button class="sm" ${dn?'disabled':`data-d="${k}"`}>Fatto</button>`:''}</div>`
+  sM+=un[k]?`<div class="m"><span>${cf?'✓✓ ':dn?'✓ ':''}${txt}${dn&&!cf&&confOk?`<br><small class="note">⏳ In attesa della conferma di ${esc(P)}</small>`:''}${cf?`<br><small class="note">Confermata da ${esc(P)}</small>`:''}</span>${showBtn?`<button class="sm" ${dn?'disabled':`data-d="${k}"`}>Fatto</button>`:''}</div>`
   :`<div class="m lock">Si sblocca alle ${at}</div>`});
- h+=`</div>`;
- if(confOk&&theirs.length){h+=`<div class="card"><div class="tag">missioni di ${esc(P)} da confermare</div>`;
+ sM+=`</div>`;
+ // --- missioni del partner da confermare ---
+ let sC=`<div class="card"><div class="tag">missioni di ${esc(P)} da confermare</div>`;
+ if(confOk&&theirs.length){
   theirs.slice().sort((a,b)=>a-b).forEach(k=>{const g=conf.given.includes(k),tx=esc(ms[k].t.replace(/\{P\}/g,(st.me.name||'te')));
-   h+=`<div class="m"><span>${g?'✓ ':''}${tx}</span>${g?'':`<button class="sm" data-c="${k}">Confermo</button>`}</div>`});
-  h+=`</div>`}
+   sC+=`<div class="m"><span>${g?'✓ ':''}${tx}</span>${g?'':`<button class="sm" data-c="${k}">Confermo</button>`}</div>`})}
+ else sC+=`<div class="m lock">Nessuna missione da confermare per ora.</div>`;
+ sC+=`</div>`;
+ const pending=confOk?theirs.filter(k=>!conf.given.includes(k)).length:0;
  const allOk=confOk?ms.every((m,k)=>conf.got.includes(k)):ms.every((m,k)=>mine.includes(k)),okN=ms.filter((m,k)=>(confOk?conf.got:mine).includes(k)).length;
  const y=shared?shared.s:[],f=shared?shared.f:[];
  const ts=shared?shared.s.length:0,tf=shared?shared.f.length:0;
  const ds=shared?shared.s.filter(i=>drawn.s.includes(i)).length:0,df=shared?shared.f.filter(i=>drawn.f.includes(i)).length:0;
- if(open)h+=`<div class="card"><div class="tag">la serata</div>${tcard()}
-<button id="pk" ${allOk&&ds<ts?'':'disabled'}>Pesca dal mazzo (${ds}/${ts})</button>${tf?`<button class="alt" id="mb" ${allOk&&df<tf?'':'disabled'}>Sblocca un «forse» in comune (${df}/${tf})</button>`:''}${allOk?'':`<p class="note">Per pescare devi completare${confOk?' e far confermare':''} tutte le missioni (${okN}/${ms.length}).</p>`}${ts&&ds>=ts?'<p class="note">Hai pescato tutte le carte del mazzo.</p>':''}${tf&&df>=tf?'<p class="note">Hai sbloccato tutti i «forse» in comune.</p>':''}</div>`;
- h+=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(i=>`<div class="m mini">${ico(i)}<span>${esc(CARDS[i].t)}</span></div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>
-<button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
-${cxBtn}
-${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p><p class="note">Brace v${APP_V}</p>`;
- return h}
+ // --- la serata ---
+ const sS=open?`<div class="card"><div class="tag">la serata</div>${tcard()}
+<button id="pk" ${allOk&&ds<ts?'':'disabled'}>Pesca dal mazzo (${ds}/${ts})</button>${tf?`<button class="alt" id="mb" ${allOk&&df<tf?'':'disabled'}>Sblocca un «forse» in comune (${df}/${tf})</button>`:''}${allOk?'':`<p class="note">Per pescare devi completare${confOk?' e far confermare':''} tutte le missioni (${okN}/${ms.length}).</p>`}${ts&&ds>=ts?'<p class="note">Hai pescato tutte le carte del mazzo.</p>':''}${tf&&df>=tf?'<p class="note">Hai sbloccato tutti i «forse» in comune.</p>':''}</div>`
+ :`<div class="card"><div class="tag">la serata</div><div class="m lock">Si apre alle ${hh}</div></div>`;
+ // --- mazzo in comune ---
+ const sD=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(i=>`<div class="m mini">${ico(i)}<span>${esc(CARDS[i].t)}</span></div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>`;
+ // --- menù in alto ---
+ const TABS=[['m','Missioni',0],['c','Conferme',pending],['s','Serata',0],['d','Mazzo',0]];
+ const nav=`<nav class="tabs">${TABS.map(([k,l,n])=>`<button class="tb${tab===k?' on':''}" data-t="${k}">${l}${n?`<span class="bdg">${n}</span>`:''}</button>`).join('')}</nav>`;
+ const body={m:sM,c:sC,s:sS,d:sD}[tab]||sM;
+ return head+nav+body+`
+ <button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
+ ${cxBtn}
+ ${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p><p class="note">Brace v${APP_V}</p>`}
 function wire(){const q=id=>document.getElementById(id);
  if(fresh&&q('tc')){fresh=false;setTimeout(()=>{const t=q('tc');if(t){t.classList.remove('deal');t.classList.add('open','just')}},520)}
  if(q('mk'))q('mk').onclick=()=>{const n=q('nm').value||'Io',h=q('hr').value||'21:00',l=q('lv').checked?2:1;store.set('brace-name',n);busy=true;draw();create(n,h,l).catch(fail)};
@@ -331,6 +352,7 @@ function wire(){const q=id=>document.getElementById(id);
   if(qi>=deck().length){draw();rpc('brace_submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
  $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('brace_mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
  if(q('mu'))q('mu').onclick=musicToggle;
+ $.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;draw();window.scrollTo(0,0)});
  $.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const k=+b.dataset.c;conf.given=[...conf.given,k];draw();rpc('brace_confirm',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
  if(q('sk'))q('sk').onclick=()=>{skip+=72e5;draw()};
  if(q('pk'))q('pk').onclick=()=>{const r=shared.s.filter(i=>!drawn.s.includes(i));if(!r.length)return;
