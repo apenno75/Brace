@@ -40,7 +40,7 @@ label{color:var(--mute);font-size:.85rem}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL='https://erukzvrtjnvyzjvfuirn.supabase.co';
-const VAPID='INCOLLA_QUI_LA_CHIAVE_PUBBLICA_VAPID';
+const VAPID='BKUF6FNwP6eF5btFp_pnu8c3VJOOtkLJn6WS21yDOUw1wh-mPGsbnVDI8XXBD-qQrG9-XYHjHw4-b5hda4kNCBw';
 const SUPABASE_KEY='sb_publishable_FDhQ03affjzeyhCHuoKulg_Rp7PdyLM';
 
 // l:1 = sensuale, l:2 = audace/esplicito (solo se la stanza è in modalità audace)
@@ -82,16 +82,25 @@ async function enablePush(){
  await rpc('brace_save_push',{p_code:code,p_player:pid,p_sub:sub.toJSON()});store.set('brace-push',code);err='';draw()}
 const fail=e=>{err='Errore: '+(e.message||e);busy=false;draw()};
 const deck=()=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].l<=st.lvl);
+// pulsante per cancellare la stanza (per entrambi i giocatori)
+const cxBtn='<button class="alt" id="cx">Annulla stanza</button>';
 
 async function create(name,hour,lvl){
  const[a,b]=hour.split(':');const d=new Date();d.setHours(+a,+b,0,0);if(d<Date.now()+36e5)d.setDate(d.getDate()+1);
  enter(await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl}))}
 async function join(name,c){
  c=c.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
- if(!(await rpc('brace_join_room',{p_code:c,p_player:pid,p_name:name}))){err='Codice non valido o stanza al completo';busy=false;return draw()}
+ const r=await rpc('brace_join_room',{p_code:c,p_player:pid,p_name:name});
+ if(r==='notfound'){err='Codice non trovato: controlla di averlo scritto giusto';busy=false;return draw()}
+ if(r==='full'){err='Stanza al completo: ci sono già due giocatori';busy=false;return draw()}
+ if(r!=='ok'){err='Risposta inattesa dal server';busy=false;return draw()}
  enter(c)}
 function enter(c){hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};last='';poll();startTimer()}
 function leave(){hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
+async function cancelRoom(){
+ if(!confirm("Annullare la stanza? Verrà cancellata anche per l'altro giocatore."))return;
+ try{await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
+ leave()}
 function startTimer(){clearInterval(timer);timer=setInterval(poll,3000)}
 async function poll(){
  if(!code)return;
@@ -116,19 +125,19 @@ function view(){
 <p class="note">Solo chi crea la stanza sceglie ora e modalità. L'altro giocatore le vedrà ma non potrà cambiarle.</p>
 <button id="mk" ${busy?'disabled':''}>Crea la stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
  if(hm==='join')return intro+`<div class="card">${name}
-<label>Codice della stanza</label><input type="text" id="cd" maxlength="6" placeholder="ABCD" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
+<label>Codice della stanza</label><input type="text" id="cd" maxlength="4" placeholder="ABCD" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
 <p class="note">Ora della serata e modalità le ha scelte chi ha creato la stanza.</p>
 <button id="jn" ${busy?'disabled':''}>Entra nella stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
  return intro+`<div class="card"><button id="gn">Creo una stanza</button><button class="alt" id="gj">Ho un codice</button></div>`+e}
- if(!st)return `<p>Carico la stanza ${esc(code)}…</p><p class="note err">${esc(err)}</p><button class="alt" id="lv2">Esci</button>`;
+ if(!st)return `<p>Carico la stanza ${esc(code)}…</p><p class="note err">${esc(err)}</p>${cxBtn}<button class="alt" id="lv2">Esci</button>`;
  if(!st.partner)return `<div class="tag">stanza creata</div><h2>Manda questo codice al tuo partner</h2><div class="code">${esc(code)}</div>
-<p>Deve aprire questa stessa pagina e inserire il codice.</p><button class="alt" id="lv2">Esci</button>`;
+<p>Deve aprire questa stessa pagina e inserire il codice.</p>${cxBtn}<button class="alt" id="lv2">Esci</button><p class="note err">${esc(err)}</p>`;
  const d=deck();
  if(!st.me.fin){if(qi>=d.length)return `<p>Salvo le risposte…</p>`;
   return `<div class="note">Serata alle ${new Date(st.ev).toTimeString().slice(0,5)} · modalità audace ${st.lvl===2?'attiva':'non attiva'} (decisa da chi ha creato la stanza)</div><div class="note">${qi+1} / ${d.length}</div><div class="card big">${esc(CARDS[d[qi]].t)}</div>
 <button data-a="s">Sì</button><button class="alt" data-a="f">Forse</button><button class="alt" data-a="m">Mai</button>
-<p class="note">Il tuo «mai» non viene mostrato a nessuno, nemmeno al server dopo il confronto.</p>`}
- if(!st.partner.fin)return `<div class="tag">risposte inviate</div><h2>Aspettiamo ${esc(st.partner.name)}</h2><p>Quando avrà finito, il mazzo comparirà qui in automatico.</p>`;
+<p class="note">Il tuo «mai» non viene mostrato a nessuno, nemmeno al server dopo il confronto.</p>${cxBtn}<p class="note err">${esc(err)}</p>`}
+ if(!st.partner.fin)return `<div class="tag">risposte inviate</div><h2>Aspettiamo ${esc(st.partner.name)}</h2><p>Quando avrà finito, il mazzo comparirà qui in automatico.</p>${cxBtn}<button class="alt" id="lv2">Esci</button><p class="note err">${esc(err)}</p>`;
  return play()}
 function play(){
  const now=Date.now()+skip,ms=MISS.filter(m=>m.l<=st.lvl),P=st.partner.name,ev=st.ev;
@@ -147,12 +156,14 @@ function play(){
 <button id="pk" ${y.length?'':'disabled'}>Pesca dal mazzo</button>${f.length?'<button class="alt" id="mb">Sblocca un «forse» in comune</button>':''}</div>`;
  h+=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(c=>`<div class="m">${esc(c)}</div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>
 <button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
+${cxBtn}
 ${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p>`;
  return h}
 function wire(){const q=id=>document.getElementById(id);
  if(q('mk'))q('mk').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();create(n,q('hr').value||'21:00',q('lv').checked?2:1).catch(fail)};
  if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();join(n,q('cd').value).catch(fail)};
  if(q('lv2'))q('lv2').onclick=leave;
+ if(q('cx'))q('cx').onclick=cancelRoom;
  if(q('nm'))q('nm').oninput=()=>store.set('brace-name',q('nm').value);
  if(q('gn'))q('gn').onclick=()=>{hm='new';draw()};
  if(q('gj'))q('gj').onclick=()=>{hm='join';draw()};
