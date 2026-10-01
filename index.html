@@ -71,6 +71,12 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
 let pid=store.get('brace-pid');if(!pid){pid=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c=='x'?r:(r&3|8)).toString(16)}));store.set('brace-pid',pid)}
 let code=store.get('brace-code'),hm=null,st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,last='',err='',busy=false,sig='',timer=null;
+// carte già pescate su questo telefono (restano memorizzate anche se ricarichi la pagina)
+let drawn={s:[],f:[],last:''};
+const dkey=c=>'brace-drawn-'+c;
+function loadDrawn(c){try{const d=JSON.parse(store.get(dkey(c))||'null');drawn=d&&d.s&&d.f?d:{s:[],f:[],last:''}}catch(e){drawn={s:[],f:[],last:''}}last=drawn.last||''}
+function saveDrawn(){drawn.last=last;store.set(dkey(code),JSON.stringify(drawn))}
+if(code)loadDrawn(code);
 
 async function rpc(fn,args){const{data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
 const b64=s=>{s=(s+'='.repeat((4-s.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
@@ -87,7 +93,8 @@ const cxBtn='<button class="alt" id="cx">Annulla stanza</button>';
 
 async function create(name,hour,lvl){
  const[a,b]=hour.split(':');const d=new Date();d.setHours(+a,+b,0,0);if(d<Date.now()+36e5)d.setDate(d.getDate()+1);
- enter(await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl}))}
+ const c=await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl});
+ store.del(dkey(c));enter(c)}
 async function join(name,c){
  c=c.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
  const r=await rpc('brace_join_room',{p_code:c,p_player:pid,p_name:name});
@@ -95,18 +102,18 @@ async function join(name,c){
  if(r==='full'){err='Stanza al completo: ci sono già due giocatori';busy=false;return draw()}
  if(r!=='ok'){err='Risposta inattesa dal server';busy=false;return draw()}
  enter(c)}
-function enter(c){hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};last='';poll();startTimer()}
+function enter(c){hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
 function leave(){hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
 async function cancelRoom(){
  if(!confirm("Annullare la stanza? Verrà cancellata anche per l'altro giocatore."))return;
  try{await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
- leave()}
+ store.del(dkey(code));leave()}
 function startTimer(){clearInterval(timer);timer=setInterval(poll,3000)}
 async function poll(){
  if(!code)return;
  try{
   const s=await rpc('brace_room_state',{p_code:code,p_player:pid});
-  if(!s){err='Stanza non trovata';leave();return}
+  if(!s){store.del(dkey(code));err='Stanza non trovata';leave();return}
   if(s.partner&&s.me.fin&&s.partner.fin&&!shared)shared=await rpc('brace_get_shared',{p_code:code,p_player:pid});
   const ns=JSON.stringify([s,shared&&1]);
   st=s;if(ns!==sig||err){sig=ns;err='';draw()}
@@ -152,8 +159,10 @@ function play(){
   :`<div class="m lock">Si sblocca alle ${at}</div>`});
  h+=`</div>`;
  const y=shared?shared.s.map(i=>CARDS[i].t):[],f=shared?shared.f.map(i=>CARDS[i].t):[];
+ const ts=shared?shared.s.length:0,tf=shared?shared.f.length:0;
+ const ds=shared?shared.s.filter(i=>drawn.s.includes(i)).length:0,df=shared?shared.f.filter(i=>drawn.f.includes(i)).length:0;
  if(open)h+=`<div class="card"><div class="tag">la serata</div><div class="big">${esc(last||'Pesca una carta dal mazzo.')}</div>
-<button id="pk" ${y.length?'':'disabled'}>Pesca dal mazzo</button>${f.length?'<button class="alt" id="mb">Sblocca un «forse» in comune</button>':''}</div>`;
+<button id="pk" ${ds<ts?'':'disabled'}>Pesca dal mazzo (${ds}/${ts})</button>${tf?`<button class="alt" id="mb" ${df<tf?'':'disabled'}>Sblocca un «forse» in comune (${df}/${tf})</button>`:''}${ts&&ds>=ts?'<p class="note">Hai pescato tutte le carte del mazzo.</p>':''}${tf&&df>=tf?'<p class="note">Hai sbloccato tutti i «forse» in comune.</p>':''}</div>`;
  h+=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(c=>`<div class="m">${esc(c)}</div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>
 <button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
 ${cxBtn}
@@ -173,8 +182,10 @@ function wire(){const q=id=>document.getElementById(id);
   if(qi>=deck().length){draw();rpc('brace_submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
  $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('brace_mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
  if(q('sk'))q('sk').onclick=()=>{skip+=72e5;draw()};
- if(q('pk'))q('pk').onclick=()=>{const y=shared.s;last=CARDS[y[Math.floor(Math.random()*y.length)]].t;draw()};
- if(q('mb'))q('mb').onclick=()=>{const f=shared.f;last='Forse in comune: '+CARDS[f[Math.floor(Math.random()*f.length)]].t;draw()}}
+ if(q('pk'))q('pk').onclick=()=>{const r=shared.s.filter(i=>!drawn.s.includes(i));if(!r.length)return;
+  const i=r[Math.floor(Math.random()*r.length)];drawn.s.push(i);last=CARDS[i].t;saveDrawn();draw()};
+ if(q('mb'))q('mb').onclick=()=>{const r=shared.f.filter(i=>!drawn.f.includes(i));if(!r.length)return;
+  const i=r[Math.floor(Math.random()*r.length)];drawn.f.push(i);last='Forse in comune: '+CARDS[i].t;saveDrawn();draw()}}
 draw();
 if(code){poll();startTimer()}
 setInterval(()=>{if(st&&st.partner&&st.me.fin&&st.partner.fin)draw()},60000);
