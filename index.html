@@ -74,6 +74,40 @@ let code=store.get('brace-code'),hm=null,st=null,shared=null,qi=0,tmp={s:[],f:[]
 // carte già pescate su questo telefono (restano memorizzate anche se ricarichi la pagina)
 let drawn={s:[],f:[],last:''};
 const dkey=c=>'brace-drawn-'+c;
+
+// ---- musica di sottofondo (parte con la tensione condivisa) ----
+const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
+const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
+let mTracks=null,mAudio=null,mOn=false,mLast='',mWait=false;
+const mMuted=()=>store.get('brace-mute')==='1';
+async function mLoad(){
+ if(mTracks)return mTracks;
+ try{const c=JSON.parse(sessionStorage.getItem('brace-mp3')||'null');if(c&&c.length){mTracks=c;return c}}catch(e){}
+ let names=[];
+ try{const r=await fetch(MP3_API);if(r.ok){const j=await r.json();names=j.filter(f=>f.type==='file'&&/\.mp3$/i.test(f.name)).map(f=>f.name)}}catch(e){}
+ if(!names.length){try{const r=await fetch(MP3_BASE+'playlist.json');if(r.ok){const j=await r.json();names=j.filter(n=>/\.mp3$/i.test(n))}}catch(e){}}
+ mTracks=names;try{sessionStorage.setItem('brace-mp3',JSON.stringify(names))}catch(e){}
+ return names}
+async function mNext(){
+ if(!mOn||mMuted())return;
+ const t=await mLoad();if(!t.length)return;
+ let c=t.filter(n=>n!==mLast);if(!c.length)c=t;
+ mLast=c[Math.floor(Math.random()*c.length)];
+ if(!mAudio){mAudio=new Audio();mAudio.preload='auto';mAudio.volume=.6;mAudio.onended=mNext;mAudio.onerror=()=>setTimeout(mNext,1500)}
+ mAudio.src=MP3_BASE+encodeURIComponent(mLast);
+ try{await mAudio.play()}catch(e){mArm()}}
+// i browser (iOS soprattutto) bloccano l'audio senza un tocco: riprova al primo tocco
+function mArm(){
+ if(mWait)return;mWait=true;
+ const go=()=>{['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev,go,true));mWait=false;
+  if(mOn&&!mMuted()){if(mAudio&&mAudio.src)mAudio.play().catch(()=>{});else mNext()}};
+ ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,go,true))}
+function musicStart(){if(mOn)return;mOn=true;if(!mMuted())mNext()}
+function musicStop(){mOn=false;if(mAudio){mAudio.pause();mAudio.removeAttribute('src');mAudio.load()}}
+function musicToggle(){
+ if(mMuted()){store.del('brace-mute');if(mAudio&&mAudio.src)mAudio.play().catch(()=>mNext());else mNext()}
+ else{store.set('brace-mute','1');if(mAudio)mAudio.pause()}
+ draw()}
 function loadDrawn(c){try{const d=JSON.parse(store.get(dkey(c))||'null');drawn=d&&d.s&&d.f?d:{s:[],f:[],last:''}}catch(e){drawn={s:[],f:[],last:''}}last=drawn.last||''}
 function saveDrawn(){drawn.last=last;store.set(dkey(code),JSON.stringify(drawn))}
 if(code)loadDrawn(code);
@@ -103,7 +137,7 @@ async function join(name,c){
  if(r!=='ok'){err='Risposta inattesa dal server';busy=false;return draw()}
  enter(c)}
 function enter(c){hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
-function leave(){hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
+function leave(){musicStop();hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
 async function cancelRoom(){
  if(!confirm("Annullare la stanza? Verrà cancellata anche per l'altro giocatore."))return;
  try{await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
@@ -147,6 +181,7 @@ function view(){
  if(!st.partner.fin)return `<div class="tag">risposte inviate</div><h2>Aspettiamo ${esc(st.partner.name)}</h2><p>Quando avrà finito, il mazzo comparirà qui in automatico.</p>${cxBtn}<button class="alt" id="lv2">Esci</button><p class="note err">${esc(err)}</p>`;
  return play()}
 function play(){
+ musicStart();
  const now=Date.now()+skip,ms=MISS.filter(m=>m.l<=st.lvl),P=st.partner.name,ev=st.ev;
  const un=ms.map(m=>ev-m.o*36e5<=now),mine=st.me.done,theirs=st.partner.done;
  const t0=ev-ms[0].o*36e5,tp=Math.max(0,Math.min(1,(now-t0)/(ev-t0)));
@@ -164,7 +199,7 @@ function play(){
  if(open)h+=`<div class="card"><div class="tag">la serata</div><div class="big">${esc(last||'Pesca una carta dal mazzo.')}</div>
 <button id="pk" ${ds<ts?'':'disabled'}>Pesca dal mazzo (${ds}/${ts})</button>${tf?`<button class="alt" id="mb" ${df<tf?'':'disabled'}>Sblocca un «forse» in comune (${df}/${tf})</button>`:''}${ts&&ds>=ts?'<p class="note">Hai pescato tutte le carte del mazzo.</p>':''}${tf&&df>=tf?'<p class="note">Hai sbloccato tutti i «forse» in comune.</p>':''}</div>`;
  h+=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(c=>`<div class="m">${esc(c)}</div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>
-<button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
+<button class="alt sm" id="mu">${mMuted()?'🔇 Musica spenta':'🔊 Musica attiva'}</button> <button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
 ${cxBtn}
 ${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p>`;
  return h}
@@ -181,6 +216,7 @@ function wire(){const q=id=>document.getElementById(id);
  $.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=deck()[qi];if(b.dataset.a!=='m')tmp[b.dataset.a].push(i);qi++;
   if(qi>=deck().length){draw();rpc('brace_submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
  $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('brace_mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
+ if(q('mu'))q('mu').onclick=musicToggle;
  if(q('sk'))q('sk').onclick=()=>{skip+=72e5;draw()};
  if(q('pk'))q('pk').onclick=()=>{const r=shared.s.filter(i=>!drawn.s.includes(i));if(!r.length)return;
   const i=r[Math.floor(Math.random()*r.length)];drawn.s.push(i);last=CARDS[i].t;saveDrawn();draw()};
