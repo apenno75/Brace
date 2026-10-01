@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brace</title>
+<meta name="theme-color" content="#1a0f14">
+<style>
+:root{--bg:#1a0f14;--card:#2a1820;--ink:#f6e9ec;--mute:#b99aa4;--acc:#e0455f;--acc2:#ff8a5c;--line:#43262f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#fff4f3;--card:#fff;--ink:#3a1520;--mute:#8a5a66;--acc:#d6304c;--acc2:#f0703e;--line:#f1d3d6}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,'Times New Roman',serif;line-height:1.45}
+main{max-width:460px;margin:0 auto;padding:22px 18px 40px}
+h1{font-size:2.4rem;margin:.2em 0}h2{font-size:1.5rem;margin:.2em 0 .5em}
+p{color:var(--mute);margin:.5em 0 1em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin:14px 0}
+.big{font-size:1.3rem;min-height:4.2em;display:flex;align-items:center}
+button,input{font:inherit}
+button{background:var(--acc);color:#fff;border:0;border-radius:14px;padding:14px 18px;width:100%;margin:6px 0;cursor:pointer}
+button:disabled{opacity:.5}
+button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.sm{width:auto;padding:8px 12px;font-size:.85rem}
+input[type=text],input[type=time]{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);margin:6px 0}
+label{color:var(--mute);font-size:.85rem}
+.chk{display:flex;gap:10px;align-items:center;margin:12px 0;color:var(--ink)}
+.bar{height:14px;background:var(--line);border-radius:9px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .6s}
+.m{border-top:1px solid var(--line);padding:12px 0;display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.m:first-child{border-top:0}.lock{opacity:.45}
+.tag{font-size:.75rem;color:var(--acc2);letter-spacing:.08em;text-transform:uppercase}
+.code{font-size:2.6rem;letter-spacing:.3em;text-align:center;margin:.2em 0}
+.note{font-size:.8rem;color:var(--mute)}
+.err{color:var(--acc2)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL='https://erukzvrtjnvyzjvfuirn.supabase.co';
+const SUPABASE_KEY='sb_publishable_FDhQ03affjzeyhCHuoKulg_Rp7PdyLM';
+
+// l:1 = sensuale, l:2 = audace/esplicito (solo se la stanza è in modalità audace)
+const CARDS=[
+{t:"Un massaggio lento con l'olio",l:1},{t:"Una benda sugli occhi",l:1},{t:"Dieci minuti di baci lenti, senza andare oltre",l:1},
+{t:"Un gioco di ruolo",l:1},{t:"Spogliarsi a vicenda, un capo alla volta",l:1},{t:"Una doccia insieme",l:1},
+{t:"Sussurrare una fantasia all'orecchio",l:1},{t:"Un posto insolito della casa",l:1},{t:"Ballare vicinissimi a luci basse",l:1},
+{t:"Comandare per dieci minuti",l:1},{t:"Ricevere senza dover fare nulla",l:1},{t:"Un messaggio audace durante la serata",l:1},
+{t:"Sesso orale, dato e ricevuto",l:2},{t:"Un 69",l:2},{t:"Usare un giocattolo insieme",l:2},
+{t:"Polsi legati con una sciarpa",l:2},{t:"Sculacciate leggere",l:2},{t:"Toccarsi davanti all'altro, senza essere toccati",l:2},
+{t:"Parole sporche a letto, senza vergogna",l:2},{t:"Portare l'altro al limite e fermarsi, più volte",l:2},
+{t:"Fare sesso davanti a uno specchio",l:2},{t:"Cambiare posizione ogni cinque minuti",l:2},
+{t:"Raccontare la fantasia più spinta, senza giudizio",l:2},{t:"Una serata in cui si dice solo «sì»",l:2}];
+// o = ore prima della serata; {P} = nome del partner
+const MISS=[
+{o:9,l:1,t:"Scrivi a {P} una frase che sai che lo farà arrossire."},
+{o:7,l:1,t:"Manda a {P} una foto di qualcosa che ti ricorda lui/lei, senza spiegazioni."},
+{o:6,l:2,t:"Dì a {P} in un messaggio una cosa precisa che vuoi fargli stasera."},
+{o:5,l:1,t:"Scrivi solo: «Ho un'idea per stasera.» Poi non aggiungere altro."},
+{o:3,l:1,t:"Sfida: non toccare {P} fino alla serata, nemmeno per sbaglio."},
+{o:2,l:2,t:"Racconta a {P}, in un vocale, cosa stai immaginando."},
+{o:1.5,l:1,t:"Prepara l'ambiente: luce bassa, musica, qualcosa di buono da bere."},
+{o:.5,l:1,t:"Uno sguardo lungo, senza parlare. Poi avvicinati."}];
+
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
+const $=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+let pid=store.get('brace-pid');if(!pid){pid=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c=='x'?r:(r&3|8)).toString(16)}));store.set('brace-pid',pid)}
+let code=store.get('brace-code'),st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,last='',err='',busy=false,sig='',timer=null;
+
+async function rpc(fn,args){const{data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
+const fail=e=>{err='Errore: '+(e.message||e);busy=false;draw()};
+const deck=()=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].l<=st.lvl);
+
+async function create(name,hour,lvl){
+ const[a,b]=hour.split(':');const d=new Date();d.setHours(+a,+b,0,0);if(d<Date.now()+36e5)d.setDate(d.getDate()+1);
+ enter(await rpc('create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl}))}
+async function join(name,c){
+ c=c.trim().toUpperCase();
+ if(!(await rpc('join_room',{p_code:c,p_player:pid,p_name:name}))){err='Codice non valido o stanza al completo';busy=false;return draw()}
+ enter(c)}
+function enter(c){code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};last='';poll();startTimer()}
+function leave(){clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
+function startTimer(){clearInterval(timer);timer=setInterval(poll,3000)}
+async function poll(){
+ if(!code)return;
+ try{
+  const s=await rpc('room_state',{p_code:code,p_player:pid});
+  if(!s){err='Stanza non trovata';leave();return}
+  if(s.partner&&s.me.fin&&s.partner.fin&&!shared)shared=await rpc('get_shared',{p_code:code,p_player:pid});
+  const ns=JSON.stringify([s,shared&&1]);
+  st=s;if(ns!==sig||err){sig=ns;err='';draw()}
+ }catch(e){err='Connessione instabile…';draw()}}
+
+function draw(){$.innerHTML=view();wire()}
+function view(){
+ if(!code)return `<div class="tag">per due, consensuali, su due telefoni</div><h1>Brace</h1>
+<p>Ognuno risponde in segreto sul proprio telefono. Vedrete solo ciò che coincide. Poi la giornata scalda piano, fino alla serata.</p>
+<div class="card"><label>Il tuo nome</label><input type="text" id="nm" maxlength="20" value="${esc(store.get('brace-name')||'')}">
+<label>Ora della serata</label><input type="time" id="hr" value="21:00">
+<label class="chk"><input type="checkbox" id="lv"> Modalità audace (carte esplicite: attivatela solo se siete entrambi d'accordo)</label>
+<button id="mk" ${busy?'disabled':''}>Crea una stanza</button></div>
+<div class="card"><label>Hai già un codice?</label><input type="text" id="cd" maxlength="4" placeholder="ABCD" style="text-transform:uppercase"><button class="alt" id="jn" ${busy?'disabled':''}>Entra nella stanza</button></div>
+<p class="note err">${esc(err)}</p>`;
+ if(!st)return `<p>Carico la stanza ${esc(code)}…</p><p class="note err">${esc(err)}</p><button class="alt" id="lv2">Esci</button>`;
+ if(!st.partner)return `<div class="tag">stanza creata</div><h2>Manda questo codice al tuo partner</h2><div class="code">${esc(code)}</div>
+<p>Deve aprire questa stessa pagina e inserire il codice.</p><button class="alt" id="lv2">Esci</button>`;
+ const d=deck();
+ if(!st.me.fin){if(qi>=d.length)return `<p>Salvo le risposte…</p>`;
+  return `<div class="note">${qi+1} / ${d.length}</div><div class="card big">${esc(CARDS[d[qi]].t)}</div>
+<button data-a="s">Sì</button><button class="alt" data-a="f">Forse</button><button class="alt" data-a="m">Mai</button>
+<p class="note">Il tuo «mai» non viene mostrato a nessuno, nemmeno al server dopo il confronto.</p>`}
+ if(!st.partner.fin)return `<div class="tag">risposte inviate</div><h2>Aspettiamo ${esc(st.partner.name)}</h2><p>Quando avrà finito, il mazzo comparirà qui in automatico.</p>`;
+ return play()}
+function play(){
+ const now=Date.now()+skip,ms=MISS.filter(m=>m.l<=st.lvl),P=st.partner.name,ev=st.ev;
+ const un=ms.map(m=>ev-m.o*36e5<=now),mine=st.me.done,theirs=st.partner.done;
+ const t0=ev-ms[0].o*36e5,tp=Math.max(0,Math.min(1,(now-t0)/(ev-t0)));
+ const tension=Math.round((tp*.5+(mine.length+theirs.length)/(ms.length*2)*.5)*100),open=now>=ev;
+ const hh=new Date(ev).toTimeString().slice(0,5);
+ let h=`<div class="tag">tensione condivisa</div><h2>${tension}%</h2><div class="bar"><i style="width:${tension}%"></i></div>
+<p>Serata alle ${hh}. ${esc(P)} ha completato ${theirs.length} missioni su ${ms.length}.</p><div class="card"><div class="tag">le tue missioni segrete</div>`;
+ ms.forEach((m,k)=>{const at=new Date(ev-m.o*36e5).toTimeString().slice(0,5);const dn=mine.includes(k);
+  h+=un[k]?`<div class="m"><span>${dn?'✓ ':''}${esc(m.t.replace(/\{P\}/g,P))}</span>${dn?'':`<button class="sm" data-d="${k}">Fatto</button>`}</div>`
+  :`<div class="m lock">Si sblocca alle ${at}</div>`});
+ h+=`</div>`;
+ const y=shared?shared.s.map(i=>CARDS[i].t):[],f=shared?shared.f.map(i=>CARDS[i].t):[];
+ if(open)h+=`<div class="card"><div class="tag">la serata</div><div class="big">${esc(last||'Pesca una carta dal mazzo.')}</div>
+<button id="pk" ${y.length?'':'disabled'}>Pesca dal mazzo</button>${f.length?'<button class="alt" id="mb">Sblocca un «forse» in comune</button>':''}</div>`;
+ h+=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(c=>`<div class="m">${esc(c)}</div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>
+<button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
+<p class="note">Non ci sono notifiche push: le missioni compaiono quando riaprite la pagina.</p>`;
+ return h}
+function wire(){const q=id=>document.getElementById(id);
+ if(q('mk'))q('mk').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();create(n,q('hr').value||'21:00',q('lv').checked?2:1).catch(fail)};
+ if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();join(n,q('cd').value).catch(fail)};
+ if(q('lv2'))q('lv2').onclick=leave;
+ $.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=deck()[qi];if(b.dataset.a!=='m')tmp[b.dataset.a].push(i);qi++;
+  if(qi>=deck().length){draw();rpc('submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
+ $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
+ if(q('sk'))q('sk').onclick=()=>{skip+=72e5;draw()};
+ if(q('pk'))q('pk').onclick=()=>{const y=shared.s;last=CARDS[y[Math.floor(Math.random()*y.length)]].t;draw()};
+ if(q('mb'))q('mb').onclick=()=>{const f=shared.f;last='Forse in comune: '+CARDS[f[Math.floor(Math.random()*f.length)]].t;draw()}}
+draw();
+if(code){poll();startTimer()}
+setInterval(()=>{if(st&&st.partner&&st.me.fin&&st.partner.fin)draw()},60000);
+</script>
+</body>
+</html>
