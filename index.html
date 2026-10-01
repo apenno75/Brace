@@ -78,6 +78,7 @@ const dkey=c=>'brace-drawn-'+c;
 // ---- musica di sottofondo (parte con la tensione condivisa) ----
 const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
 const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
+let conf={given:[],got:[]},confOk=false;
 let mTracks=null,mAudio=null,mOn=false,mLast='',mWait=false;
 const mMuted=()=>store.get('brace-mute')==='1';
 async function mLoad(){
@@ -136,8 +137,8 @@ async function join(name,c){
  if(r==='full'){err='Stanza al completo: ci sono già due giocatori';busy=false;return draw()}
  if(r!=='ok'){err='Risposta inattesa dal server';busy=false;return draw()}
  enter(c)}
-function enter(c){hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
-function leave(){musicStop();hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
+function enter(c){conf={given:[],got:[]};confOk=false;hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
+function leave(){musicStop();conf={given:[],got:[]};confOk=false;hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
 async function cancelRoom(){
  if(!confirm("Annullare la stanza? Verrà cancellata anche per l'altro giocatore."))return;
  try{await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
@@ -149,7 +150,8 @@ async function poll(){
   const s=await rpc('brace_room_state',{p_code:code,p_player:pid});
   if(!s){store.del(dkey(code));err='Stanza non trovata';leave();return}
   if(s.partner&&s.me.fin&&s.partner.fin&&!shared)shared=await rpc('brace_get_shared',{p_code:code,p_player:pid});
-  const ns=JSON.stringify([s,shared&&1]);
+  if(s.partner&&s.me.fin&&s.partner.fin){try{const c=await rpc('brace_get_confirms',{p_code:code,p_player:pid});conf={given:(c&&c.given)||[],got:(c&&c.got)||[]};confOk=true}catch(e){confOk=false}}
+  const ns=JSON.stringify([s,shared&&1,conf,confOk]);
   st=s;if(ns!==sig||err){sig=ns;err='';draw()}
  }catch(e){err='Connessione instabile…';draw()}}
 
@@ -187,19 +189,25 @@ function play(){
  const t0=ev-ms[0].o*36e5,tp=Math.max(0,Math.min(1,(now-t0)/(ev-t0)));
  const tension=Math.round((tp*.5+(mine.length+theirs.length)/(ms.length*2)*.5)*100),open=now>=ev;
  const hh=new Date(ev).toTimeString().slice(0,5);
- let h=`<div class="tag">tensione condivisa</div><h2>${tension}%</h2><div class="bar"><i style="width:${tension}%"></i></div>
+ let h=`<div style="text-align:right"><button class="alt sm" id="mu">${mMuted()?'🔇 Musica spenta':'🔊 Musica attiva'}</button></div><div class="tag">tensione condivisa</div><h2>${tension}%</h2><div class="bar"><i style="width:${tension}%"></i></div>
 <p>Serata alle ${hh}. ${esc(P)} ha completato ${theirs.length} missioni su ${ms.length}.</p><div class="card"><div class="tag">le tue missioni segrete</div>`;
  ms.forEach((m,k)=>{const at=new Date(ev-m.o*36e5).toTimeString().slice(0,5);const dn=mine.includes(k);
-  h+=un[k]?`<div class="m"><span>${dn?'✓ ':''}${esc(m.t.replace(/\{P\}/g,P))}</span>${dn?'':`<button class="sm" data-d="${k}">Fatto</button>`}</div>`
+  const cf=conf.got.includes(k),showBtn=confOk?!cf:!dn,txt=esc(m.t.replace(/\{P\}/g,P));
+  h+=un[k]?`<div class="m"><span>${cf?'✓✓ ':dn?'✓ ':''}${txt}${dn&&!cf&&confOk?`<br><small class="note">⏳ In attesa della conferma di ${esc(P)}</small>`:''}${cf?`<br><small class="note">Confermata da ${esc(P)}</small>`:''}</span>${showBtn?`<button class="sm" ${dn?'disabled':`data-d="${k}"`}>Fatto</button>`:''}</div>`
   :`<div class="m lock">Si sblocca alle ${at}</div>`});
  h+=`</div>`;
+ if(confOk&&theirs.length){h+=`<div class="card"><div class="tag">missioni di ${esc(P)} da confermare</div>`;
+  theirs.slice().sort((a,b)=>a-b).forEach(k=>{const g=conf.given.includes(k),tx=esc(ms[k].t.replace(/\{P\}/g,(st.me.name||'te')));
+   h+=`<div class="m"><span>${g?'✓ ':''}${tx}</span>${g?'':`<button class="sm" data-c="${k}">Confermo</button>`}</div>`});
+  h+=`</div>`}
+ const allOk=confOk?ms.every((m,k)=>conf.got.includes(k)):ms.every((m,k)=>mine.includes(k)),okN=ms.filter((m,k)=>(confOk?conf.got:mine).includes(k)).length;
  const y=shared?shared.s.map(i=>CARDS[i].t):[],f=shared?shared.f.map(i=>CARDS[i].t):[];
  const ts=shared?shared.s.length:0,tf=shared?shared.f.length:0;
  const ds=shared?shared.s.filter(i=>drawn.s.includes(i)).length:0,df=shared?shared.f.filter(i=>drawn.f.includes(i)).length:0;
  if(open)h+=`<div class="card"><div class="tag">la serata</div><div class="big">${esc(last||'Pesca una carta dal mazzo.')}</div>
-<button id="pk" ${ds<ts?'':'disabled'}>Pesca dal mazzo (${ds}/${ts})</button>${tf?`<button class="alt" id="mb" ${df<tf?'':'disabled'}>Sblocca un «forse» in comune (${df}/${tf})</button>`:''}${ts&&ds>=ts?'<p class="note">Hai pescato tutte le carte del mazzo.</p>':''}${tf&&df>=tf?'<p class="note">Hai sbloccato tutti i «forse» in comune.</p>':''}</div>`;
+<button id="pk" ${allOk&&ds<ts?'':'disabled'}>Pesca dal mazzo (${ds}/${ts})</button>${tf?`<button class="alt" id="mb" ${allOk&&df<tf?'':'disabled'}>Sblocca un «forse» in comune (${df}/${tf})</button>`:''}${allOk?'':`<p class="note">Per pescare devi completare${confOk?' e far confermare':''} tutte le missioni (${okN}/${ms.length}).</p>`}${ts&&ds>=ts?'<p class="note">Hai pescato tutte le carte del mazzo.</p>':''}${tf&&df>=tf?'<p class="note">Hai sbloccato tutti i «forse» in comune.</p>':''}</div>`;
  h+=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(c=>`<div class="m">${esc(c)}</div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>
-<button class="alt sm" id="mu">${mMuted()?'🔇 Musica spenta':'🔊 Musica attiva'}</button> <button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
+<button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <button class="alt sm" id="lv2">Esci</button>
 ${cxBtn}
 ${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p>`;
  return h}
@@ -217,6 +225,7 @@ function wire(){const q=id=>document.getElementById(id);
   if(qi>=deck().length){draw();rpc('brace_submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
  $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('brace_mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
  if(q('mu'))q('mu').onclick=musicToggle;
+ $.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const k=+b.dataset.c;conf.given=[...conf.given,k];draw();rpc('brace_confirm',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
  if(q('sk'))q('sk').onclick=()=>{skip+=72e5;draw()};
  if(q('pk'))q('pk').onclick=()=>{const r=shared.s.filter(i=>!drawn.s.includes(i));if(!r.length)return;
   const i=r[Math.floor(Math.random()*r.length)];drawn.s.push(i);last=CARDS[i].t;saveDrawn();draw()};
