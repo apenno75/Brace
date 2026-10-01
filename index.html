@@ -75,10 +75,10 @@ const deck=()=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].l<=st.lvl);
 
 async function create(name,hour,lvl){
  const[a,b]=hour.split(':');const d=new Date();d.setHours(+a,+b,0,0);if(d<Date.now()+36e5)d.setDate(d.getDate()+1);
- enter(await rpc('create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl}))}
+ enter(await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl}))}
 async function join(name,c){
  c=c.trim().toUpperCase();
- if(!(await rpc('join_room',{p_code:c,p_player:pid,p_name:name}))){err='Codice non valido o stanza al completo';busy=false;return draw()}
+ if(!(await rpc('brace_join_room',{p_code:c,p_player:pid,p_name:name}))){err='Codice non valido o stanza al completo';busy=false;return draw()}
  enter(c)}
 function enter(c){code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};last='';poll();startTimer()}
 function leave(){clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
@@ -86,9 +86,9 @@ function startTimer(){clearInterval(timer);timer=setInterval(poll,3000)}
 async function poll(){
  if(!code)return;
  try{
-  const s=await rpc('room_state',{p_code:code,p_player:pid});
+  const s=await rpc('brace_room_state',{p_code:code,p_player:pid});
   if(!s){err='Stanza non trovata';leave();return}
-  if(s.partner&&s.me.fin&&s.partner.fin&&!shared)shared=await rpc('get_shared',{p_code:code,p_player:pid});
+  if(s.partner&&s.me.fin&&s.partner.fin&&!shared)shared=await rpc('brace_get_shared',{p_code:code,p_player:pid});
   const ns=JSON.stringify([s,shared&&1]);
   st=s;if(ns!==sig||err){sig=ns;err='';draw()}
  }catch(e){err='Connessione instabile…';draw()}}
@@ -137,8 +137,8 @@ function wire(){const q=id=>document.getElementById(id);
  if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();join(n,q('cd').value).catch(fail)};
  if(q('lv2'))q('lv2').onclick=leave;
  $.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=deck()[qi];if(b.dataset.a!=='m')tmp[b.dataset.a].push(i);qi++;
-  if(qi>=deck().length){draw();rpc('submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
- $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
+  if(qi>=deck().length){draw();rpc('brace_submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
+ $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('brace_mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
  if(q('sk'))q('sk').onclick=()=>{skip+=72e5;draw()};
  if(q('pk'))q('pk').onclick=()=>{const y=shared.s;last=CARDS[y[Math.floor(Math.random()*y.length)]].t;draw()};
  if(q('mb'))q('mb').onclick=()=>{const f=shared.f;last='Forse in comune: '+CARDS[f[Math.floor(Math.random()*f.length)]].t;draw()}}
