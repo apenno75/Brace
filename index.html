@@ -32,6 +32,7 @@ button.sm{width:auto;padding:8px 13px;font-size:.85rem}
 input[type=text],input[type=time]{width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(10,2,6,.55);color:var(--ink);margin:6px 0;outline:none}
 input[type=text]:focus,input[type=time]:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,45,107,.22)}
 input[type=checkbox]{accent-color:var(--acc);width:20px;height:20px;flex:none}
+select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(10,2,6,.55);color:var(--ink);margin:6px 0;font:inherit}
 label{color:var(--mute);font-size:.85rem}
 .chk{display:flex;gap:10px;align-items:center;margin:12px 0;color:var(--ink)}
 .bar{height:12px;background:rgba(255,255,255,.07);border-radius:9px;overflow:hidden;margin:8px 0;box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
@@ -116,6 +117,11 @@ const CARDS=[
 {t:"Parole sporche a letto, senza vergogna",l:2},{t:"Portare l'altro al limite e fermarsi, più volte",l:2},
 {t:"Fare sesso davanti a uno specchio",l:2},{t:"Cambiare posizione ogni cinque minuti",l:2},
 {t:"Raccontare la fantasia più spinta, senza giudizio",l:2},{t:"Una serata in cui si dice solo «sì»",l:2}];
+// nuove carte: 24-29 sensuali, 30-39 posizioni (k:'p', solo con Modalità Posizioni)
+CARDS.push({t:"Una playlist scelta solo per stasera",l:1},{t:"Un bagno caldo a lume di candela",l:1},{t:"Cenare in intimo, imboccandosi a vicenda",l:1},{t:"Carezze lente con una piuma",l:1},{t:"Baciarsi ovunque tranne che sulle labbra",l:1},{t:"Addormentarsi pelle contro pelle",l:1},
+{t:"Missionario: faccia a faccia, senza fretta",l:3,k:'p'},{t:"Cucchiaio: abbracciati di fianco",l:3,k:'p'},{t:"Amazzone: chi sta sopra decide il ritmo",l:3,k:'p'},{t:"Pecorina: da dietro, a quattro zampe",l:3,k:'p'},{t:"Loto: seduti, abbracciati e vicinissimi",l:3,k:'p'},
+{t:"In piedi, contro il muro",l:3,k:'p'},{t:"Sulla sedia: uno seduto, l'altro sopra",l:3,k:'p'},{t:"Forbici: sdraiati, gambe intrecciate",l:3,k:'p'},{t:"Farfalla: schiena sul bordo del letto",l:3,k:'p'},{t:"Carriola: per i più acrobatici",l:3,k:'p'});
+CARDS.forEach(c=>{if(!c.k)c.k=c.l===2?'a':'s'});
 // o = ore prima della serata; {P} = nome del partner
 const MISS=[
 {o:9,l:1,t:"Scrivi a {P} una frase che sai che lo farà arrossire."},
@@ -155,6 +161,23 @@ const ART=[
 /*22 fantasia*/'<path class="f" d="M32 74C14 74 12 50 30 48C28 30 52 22 62 36C72 24 98 32 92 52C110 56 106 76 88 74Z"/><circle cx="40" cy="88" r="5"/><circle cx="28" cy="102" r="3"/><path class="g" d="M60 38L64 48L75 49L66 56L69 67L60 61L51 67L54 56L45 49L56 48Z"/>',
 /*23 solo sì*/'<path class="f" d="M60 106C18 76 18 36 42 34C52 33 58 39 60 45C62 39 68 33 78 34C102 36 102 76 60 106Z"/><path d="M42 66L55 79L80 50" style="stroke-width:5"/>'
 ];
+ART.push(
+/*24 playlist*/'<path class="w" d="M46 94V30L88 20V84"/><path d="M46 44L88 34"/><circle class="f" cx="38" cy="96" r="10"/><circle class="f" cx="80" cy="86" r="10"/>',
+/*25 candela*/'<rect class="f" x="44" y="54" width="32" height="50" rx="3"/><path d="M60 54V44"/><path class="g" d="M60 14C68 26 72 32 60 42C48 32 52 26 60 14Z"/><path class="w" d="M30 108H90"/>',
+/*26 cena*/'<path class="f" d="M38 16H82C82 48 74 62 60 62C46 62 38 48 38 16Z"/><path d="M60 62V100M42 104H78"/><path class="w" d="M42 34H78"/>',
+/*27 piuma*/'<path class="f" d="M92 14C50 16 30 48 34 84C70 80 94 52 92 14Z"/><path class="w" d="M34 84L22 108M44 74L74 40M42 60L58 46"/>',
+/*28 baci ovunque*/'<path class="f" d="M30 50C16 38 28 24 38 34C48 24 60 38 46 50L38 58Z"/><path class="f" d="M70 80C56 68 68 54 78 64C88 54 100 68 86 80L78 88Z"/><path class="g" d="M88 24L91 32L99 34L91 38L88 46L85 38L77 34L85 32Z"/>',
+/*29 pelle contro pelle*/'<path class="f" d="M82 18C52 20 36 52 50 80C60 98 84 102 100 90C74 92 62 60 82 18Z"/><path class="g" d="M92 40L95 47L102 48L96 53L98 60L92 56L86 60L88 53L82 48L89 47Z"/>',
+/*30 missionario*/'<path d="M8 108H112"/><circle class="w" cx="22" cy="92" r="7"/><path class="w" d="M30 96H72L92 78M72 96L100 100"/><circle class="f" cx="34" cy="62" r="7"/><path d="M41 67L76 82L96 62M76 82L108 88M44 70L32 90"/>',
+/*31 cucchiaio*/'<path d="M8 108H112"/><circle class="w" cx="24" cy="84" r="7"/><path class="w" d="M31 89C50 100 70 100 90 92L106 102"/><circle class="f" cx="34" cy="58" r="7"/><path d="M41 63C58 76 78 78 96 70L110 82M50 72L40 88"/>',
+/*32 amazzone*/'<path d="M8 108H112"/><circle class="w" cx="22" cy="94" r="7"/><path class="w" d="M30 98H100"/><circle class="f" cx="62" cy="30" r="7"/><path d="M62 38V68M62 48L46 62M62 48L78 62M62 68L44 90L54 98M62 68L82 90L72 98"/>',
+/*33 pecorina*/'<path d="M8 108H112"/><circle class="w" cx="26" cy="62" r="7"/><path class="w" d="M33 66L76 70M42 68V104M70 72L78 90L66 104"/><circle class="f" cx="92" cy="30" r="7"/><path d="M92 38V70M92 48L74 64M92 70L82 90L90 104M92 70L104 90"/>',
+/*34 loto*/'<path d="M8 108H112"/><circle class="f" cx="44" cy="30" r="7"/><path d="M44 38V76M44 76L24 94M44 76L70 96"/><circle class="w" cx="76" cy="30" r="7"/><path class="w" d="M76 38V74M76 74L96 94M76 74L50 98M46 50L68 54M74 50L52 54"/>',
+/*35 in piedi*/'<path d="M14 10V112"/><circle class="w" cx="34" cy="26" r="7"/><path class="w" d="M34 34V70M34 70L28 108M34 70L48 108M34 48L20 58"/><circle class="f" cx="58" cy="26" r="7"/><path d="M58 34V68M58 68L54 108M58 68L72 108M58 46L38 54"/>',
+/*36 sedia*/'<path d="M20 20V108M20 66H72M72 66V108"/><circle class="w" cx="46" cy="30" r="7"/><path class="w" d="M46 38V66L80 70L84 108"/><circle class="f" cx="64" cy="22" r="7"/><path d="M64 30V60L56 80M64 44L48 50"/>',
+/*37 forbici*/'<path d="M8 108H112"/><circle class="w" cx="16" cy="90" r="7"/><path class="w" d="M23 94H58L100 74M58 94L104 100"/><circle class="f" cx="104" cy="66" r="7"/><path d="M97 70H62L22 86M62 70L16 62"/>',
+/*38 farfalla*/'<path class="g" d="M10 84H70V96H10Z"/><circle class="w" cx="20" cy="74" r="7"/><path class="w" d="M28 78H62L86 56M62 80L88 70"/><circle class="f" cx="90" cy="26" r="7"/><path d="M90 34V70L84 108M90 70L100 108M90 46L70 62"/>',
+/*39 carriola*/'<path d="M8 108H112"/><circle class="w" cx="24" cy="76" r="7"/><path class="w" d="M30 82L70 70M34 84L28 108M44 80L48 108"/><circle class="f" cx="92" cy="30" r="7"/><path d="M92 38V74L84 108M92 74L100 108M92 52L74 66M92 52L76 70"/>');
 const ico=i=>'<svg class="il" viewBox="0 0 120 120" aria-hidden="true">'+(ART[i]||'')+'</svg>';
 const FLAME='<path class="g" d="M60 12C64 32 86 44 86 70C86 88 74 104 60 106C46 104 34 88 34 70C34 56 42 50 47 38C52 46 55 50 59 50C59 38 57 26 60 12Z"/><path class="f" d="M60 64C68 74 72 82 66 92C62 96 58 96 54 92C48 84 54 74 60 64Z"/>';
 const LOGO='<svg class="il logo" viewBox="0 0 120 120" aria-hidden="true">'+FLAME+'</svg>';
@@ -163,7 +186,7 @@ const EMB='<svg class="il" viewBox="0 0 120 120" aria-hidden="true"><circle cx="
 function tcard(){
  const has=lastI>=0,c=has?CARDS[lastI]:null,cls='tcard'+(has&&!fresh?' open':'')+(has&&fresh?' deal':'')+(has?'':' idle');
  const back='<div class="face back">'+EMB+'<div class="bn">Brace</div></div>';
- const front=has?'<div class="face front"><i class="cn tl">♥</i><i class="cn br">♥</i><div class="ftag">'+(c.l===2?'audace 🔥':'sensuale')+'</div>'+ico(lastI)+'<div class="ctext">'+esc(c.t)+'</div><div class="fk">'+(lastMaybe?'un «forse» in comune':'carta in comune')+'</div></div>':'';
+ const front=has?'<div class="face front"><i class="cn tl">♥</i><i class="cn br">♥</i><div class="ftag">'+(c.k==='a'?'audace 🔥':c.k==='p'?'posizione':'sensuale')+'</div>'+ico(lastI)+'<div class="ctext">'+esc(c.t)+'</div><div class="fk">'+(lastMaybe?'un «forse» in comune':'carta in comune')+'</div></div>':'';
  return '<div class="'+cls+'" id="tc"><div class="tin">'+back+front+'</div></div>'+(has?'':'<p class="note" style="text-align:center">Pesca una carta dal mazzo.</p>')}
 // braci che salgono sullo sfondo
 (()=>{const b=document.getElementById('bg');if(!b||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches))return;
@@ -184,7 +207,7 @@ const dkey=c=>'brace-drawn-'+c;
 const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
 const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
 let conf={given:[],got:[]},confOk=false;
-const APP_V=8;
+const APP_V=9;
 // se sul telefono c'è una versione vecchia in cache, scarica quella nuova e ricarica (una volta per sessione)
 (async()=>{try{const r=await fetch(location.href.split('#')[0].split('?')[0],{cache:'no-store'});const t=await r.text();const m=t.match(/const APP_V=(\d+)/);
  if(m&&+m[1]>APP_V&&!sessionStorage.getItem('brace-rl')){sessionStorage.setItem('brace-rl','1');if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}location.reload()}}catch(e){}})();
@@ -235,13 +258,37 @@ async function enablePush(){
  const sub=(await reg.pushManager.getSubscription())||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(VAPID)});
  await rpc('brace_save_push',{p_code:code,p_player:pid,p_sub:sub.toJSON()});store.set('brace-push',code);err='';draw()}
 const fail=e=>{err='Errore: '+(e.message||e);busy=false;draw()};
-const deck=()=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].l<=st.lvl);
+let cfg=null,fm=null;
+// mazzo della stanza (18 carte scelte alla creazione); le stanze vecchie usano il mazzo di prima
+const deck=()=>st.deck&&st.deck.length?st.deck:CARDS.map((c,i)=>i).filter(i=>i<24&&CARDS[i].l<=st.lvl);
+const missions=()=>st.mis&&st.mis.length?st.mis.map(x=>({t:MISS[x.m].t,o:x.o/60})):MISS.filter(m=>m.l<=st.lvl);
+// 18 carte: 1 tipo = 18, 2 tipi = 9+9, 3 tipi = 6+6+6
+function buildDeck(lv,ps){
+ const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+ const by=k=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].k===k);
+ const ks=['s'].concat(lv?['a']:[],ps?['p']:[]),q=18/ks.length;
+ return sh([].concat(...ks.map(k=>sh(by(k)).slice(0,q))))}
+const toM=t=>{const[x,y]=(t||'0:0').split(':');return +x*60+ +y};
+const hmm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+function defTimes(n,hr){const E=toM(hr),s=Math.max(0,Math.min(540,E-180)),e=Math.max(s,E-30);return Array.from({length:n},(_,j)=>hmm(Math.round((s+(e-s)*j/(n-1))/5)*5))}
+const F=()=>fm||(fm={hr:'21:00',lv:false,ps:false,n:4,touched:false,times:defTimes(4,'21:00')});
+function fmHtml(){const f=F();return `<label>Ora della serata</label><input type="time" id="hr" value="${f.hr}">
+<label class="chk"><input type="checkbox" id="lv" ${f.lv?'checked':''}> Modalità audace (carte esplicite: attivatela solo se siete entrambi d'accordo)</label>
+<label class="chk"><input type="checkbox" id="ps" ${f.ps?'checked':''}> Modalità Posizioni (aggiunge carte con il disegno delle posizioni del kamasutra, dalle classiche alle più particolari)</label>
+<label>Quante missioni durante la giornata</label><select id="mn">${[2,3,4,5,6].map(v=>`<option${v===f.n?' selected':''}>${v}</option>`).join('')}</select>
+${f.times.map((t,k)=>`<label>Missione ${k+1}: si attiva alle</label><input type="time" class="mt" data-k="${k}" value="${t}">`).join('')}`}
 // pulsante per cancellare la stanza (per entrambi i giocatori)
 const cxBtn='<button class="alt" id="cx">Annulla stanza</button>';
 
-async function create(name,hour,lvl){
+async function create(name,hour,lvl,pos,times){
  const[a,b]=hour.split(':');const d=new Date();d.setHours(+a,+b,0,0);if(d<=Date.now())d.setDate(d.getDate()+1);
- const c=await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl});
+ if(times.some(t=>!t))throw new Error('imposta l\'ora di ogni missione');
+ const os=times.map(t=>toM(hour)-toM(t));
+ if(os.some(o=>o<=0))throw new Error('ogni missione deve attivarsi prima dell\'ora della serata');
+ os.sort((x,y)=>y-x);
+ const pool=MISS.map((m,i)=>i).filter(i=>MISS[i].l<=lvl),n=os.length;
+ const mis=os.map((o,j)=>({m:pool[n>1?Math.round(j*(pool.length-1)/(n-1)):0],o}));
+ const c=await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl,p_pos:pos,p_mis:mis,p_deck:buildDeck(lvl===2,pos)});
  store.del(dkey(c));enter(c)}
 async function join(name,c){
  c=c.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
@@ -250,8 +297,8 @@ async function join(name,c){
  if(r==='full'){err='Stanza al completo: ci sono già due giocatori';busy=false;return draw()}
  if(r!=='ok'){err='Risposta inattesa dal server';busy=false;return draw()}
  enter(c)}
-function enter(c){tab='m';conf={given:[],got:[]};confOk=false;hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
-function leave(){musicStop();conf={given:[],got:[]};confOk=false;hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
+function enter(c){cfg=null;fm=null;tab='m';conf={given:[],got:[]};confOk=false;hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
+function leave(){cfg=null;musicStop();conf={given:[],got:[]};confOk=false;hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
 async function cancelRoom(){
  if(!confirm("Annullare la stanza? Verrà cancellata anche per l'altro giocatore."))return;
  try{await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
@@ -262,6 +309,8 @@ async function poll(){
  try{
   const s=await rpc('brace_room_state',{p_code:code,p_player:pid});
   if(!s){store.del(dkey(code));err='Stanza non trovata';leave();return}
+  if(!cfg){try{cfg=await rpc('brace_room_config',{p_code:code,p_player:pid})}catch(e){}}
+  {const g=cfg||{};s.pos=g.pos;s.mis=g.mis;s.deck=g.deck}
   if(s.partner&&s.me.fin&&s.partner.fin&&!shared)shared=await rpc('brace_get_shared',{p_code:code,p_player:pid});
   if(s.partner&&s.me.fin&&s.partner.fin){try{const c=await rpc('brace_get_confirms',{p_code:code,p_player:pid});conf={given:(c&&c.given)||[],got:(c&&c.got)||[]};confOk=true}catch(e){confOk=false}}
   const ns=JSON.stringify([s,shared&&1,conf,confOk]);
@@ -276,9 +325,8 @@ function view(){
  const name=`<label>Il tuo nome</label><input type="text" id="nm" maxlength="20" value="${esc(store.get('brace-name')||'')}">`;
  const e=`<p class="note err">${esc(err)}</p>`;
  if(hm==='new')return intro+`<div class="card">${name}
-<label>Ora della serata</label><input type="time" id="hr" value="21:00">
-<label class="chk"><input type="checkbox" id="lv"> Modalità audace (carte esplicite: attivatela solo se siete entrambi d'accordo)</label>
-<p class="note">Solo chi crea la stanza sceglie ora e modalità. L'altro giocatore le vedrà ma non potrà cambiarle.</p>
+${fmHtml()}
+<p class="note">Ogni giocatore vedrà 18 carte: mazzi diversi si dividono in parti uguali. Solo chi crea la stanza sceglie ora, modalità e missioni; l'altro le vedrà ma non potrà cambiarle.</p>
 <button id="mk" ${busy?'disabled':''}>Crea la stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
  if(hm==='join')return intro+`<div class="card">${name}
 <label>Codice della stanza</label><input type="text" id="cd" maxlength="4" placeholder="ABCD" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
@@ -290,14 +338,14 @@ function view(){
 <p>Deve aprire questa stessa pagina e inserire il codice.</p>${cxBtn}<button class="alt" id="lv2">Esci</button><p class="note err">${esc(err)}</p>`;
  const d=deck();
  if(!st.me.fin){if(qi>=d.length)return `<p>Salvo le risposte…</p>`;const fxc=fx?' rise':'';fx=false;
-  return `<div class="note">Serata alle ${new Date(st.ev).toTimeString().slice(0,5)} · modalità audace ${st.lvl===2?'attiva':'non attiva'} (decisa da chi ha creato la stanza)</div><div class="note">${qi+1} / ${d.length}</div><div class="card qc${fxc}">${ico(d[qi])}<div class="qt">${esc(CARDS[d[qi]].t)}</div></div>
+  return `<div class="note">Serata alle ${new Date(st.ev).toTimeString().slice(0,5)} · modalità audace ${st.lvl===2?'attiva':'non attiva'} · posizioni ${st.pos?'attive':'non attive'} (decise da chi ha creato la stanza)</div><div class="note">${qi+1} / ${d.length}</div><div class="card qc${fxc}">${ico(d[qi])}<div class="qt">${esc(CARDS[d[qi]].t)}</div></div>
 <button data-a="s">Sì</button><button class="alt" data-a="f">Forse</button><button class="alt" data-a="m">Mai</button>
 <p class="note">Il tuo «mai» non viene mostrato a nessuno, nemmeno al server dopo il confronto.</p>${cxBtn}<p class="note err">${esc(err)}</p>`}
  if(!st.partner.fin)return `<div class="tag">risposte inviate</div><h2>Aspettiamo ${esc(st.partner.name)}</h2><p>Quando avrà finito, il mazzo comparirà qui in automatico.</p>${cxBtn}<button class="alt" id="lv2">Esci</button><p class="note err">${esc(err)}</p>`;
  return play()}
 function play(){
  musicStart();
- const now=Date.now()+skip,ms=MISS.filter(m=>m.l<=st.lvl),P=st.partner.name,ev=st.ev;
+ const now=Date.now()+skip,ms=missions(),P=st.partner.name,ev=st.ev;
  const un=ms.map(m=>ev-m.o*36e5<=now),mine=st.me.done,theirs=st.partner.done;
  const t0=ev-ms[0].o*36e5,tp=Math.max(0,Math.min(1,(now-t0)/(ev-t0)));
  const tension=Math.round((tp*.5+(mine.length+theirs.length)/(ms.length*2)*.5)*100),open=now>=ev;
@@ -339,7 +387,12 @@ function play(){
  ${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p><p class="note">Brace v${APP_V}</p>`}
 function wire(){const q=id=>document.getElementById(id);
  if(fresh&&q('tc')){fresh=false;setTimeout(()=>{const t=q('tc');if(t){t.classList.remove('deal');t.classList.add('open','just')}},520)}
- if(q('mk'))q('mk').onclick=()=>{const n=q('nm').value||'Io',h=q('hr').value||'21:00',l=q('lv').checked?2:1;store.set('brace-name',n);busy=true;draw();create(n,h,l).catch(fail)};
+ if(q('hr'))q('hr').onchange=()=>{const f=F();f.hr=q('hr').value||'21:00';if(!f.touched)f.times=defTimes(f.n,f.hr);draw()};
+ if(q('lv'))q('lv').onchange=()=>{F().lv=q('lv').checked};
+ if(q('ps'))q('ps').onchange=()=>{F().ps=q('ps').checked};
+ if(q('mn'))q('mn').onchange=()=>{const f=F();f.n=+q('mn').value;f.touched=false;f.times=defTimes(f.n,f.hr);draw()};
+ $.querySelectorAll('.mt').forEach(i=>i.onchange=()=>{const f=F();f.times[+i.dataset.k]=i.value;f.touched=true});
+ if(q('mk'))q('mk').onclick=()=>{const f=F(),n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();create(n,f.hr,f.lv?2:1,f.ps,f.times.slice()).catch(fail)};
  if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io',c=q('cd').value;store.set('brace-name',n);busy=true;draw();join(n,c).catch(fail)};
  if(q('lv2'))q('lv2').onclick=leave;
  if(q('cx'))q('cx').onclick=cancelRoom;
