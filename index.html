@@ -221,7 +221,7 @@ const dkey=c=>'brace-drawn-'+c;
 const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
 const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
 let conf={given:[],got:[]},confOk=false;
-const APP_V=10;
+const APP_V=11;
 // se sul telefono c'è una versione vecchia in cache, scarica quella nuova e ricarica (una volta per sessione)
 (async()=>{try{const r=await fetch(location.href.split('#')[0].split('?')[0],{cache:'no-store'});const t=await r.text();const m=t.match(/const APP_V=(\d+)/);
  if(m&&+m[1]>APP_V&&!sessionStorage.getItem('brace-rl')){sessionStorage.setItem('brace-rl','1');if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}location.reload()}}catch(e){}})();
@@ -284,15 +284,17 @@ function buildDeck(lv,ps){
  return sh([].concat(...ks.map(k=>sh(by(k)).slice(0,q))))}
 const toM=t=>{const[x,y]=(t||'0:0').split(':');return +x*60+ +y};
 const hmm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
-function defTimes(n,hr){const E=toM(hr),s=Math.max(0,Math.min(540,E-180)),e=Math.max(s,E-30);return Array.from({length:n},(_,j)=>hmm(Math.round((s+(e-s)*j/(n-1))/5)*5))}
+function defTimes(n,hr){const E=toM(hr),s=Math.max(0,Math.min(540,E-180)),e=Math.max(s,E-30);return Array.from({length:n},(_,j)=>hmm(Math.round((s+(e-s)*j/(n-1))/15)*15))}
 const mpool=lv=>MISS.map((m,i)=>i).filter(i=>MISS[i].l<=(lv?2:1));
 function fixPicks(f){const pool=mpool(f.lv),out=[];for(let j=0;j<f.n;j++){let m=f.picks[j];if(m===undefined||!pool.includes(m)||out.includes(m))m=pool.find(x=>!out.includes(x));out.push(m)}f.picks=out}
 const F=()=>fm||(fm=(f=>(fixPicks(f),f))({hr:'21:00',lv:false,ps:false,n:4,touched:false,times:defTimes(4,'21:00'),picks:[]}));
-function fmHtml(){const f=F();return `<label>Ora della serata</label><input type="time" id="hr" value="${f.hr}">
+// orario con ore (00-23) e minuti ogni 15 (00, 15, 30, 45)
+const tsel=(key,v)=>{const[h,m]=v.split(':');return `<div class="tp" data-key="${key}" style="display:flex;gap:8px;align-items:center"><select>${Array.from({length:24},(_,i)=>{const x=String(i).padStart(2,'0');return `<option${x===h?' selected':''}>${x}</option>`}).join('')}</select>:<select>${['00','15','30','45'].map(x=>`<option${x===m?' selected':''}>${x}</option>`).join('')}</select></div>`};
+function fmHtml(){const f=F();return `<label>Ora della serata</label>${tsel('hr',f.hr)}
 <label class="chk"><input type="checkbox" id="lv" ${f.lv?'checked':''}> Modalità audace (carte esplicite: attivatela solo se siete entrambi d'accordo)</label>
 <label class="chk"><input type="checkbox" id="ps" ${f.ps?'checked':''}> Modalità Posizioni (aggiunge carte con il disegno delle posizioni del kamasutra, dalle classiche alle più particolari)</label>
 <label>Quante missioni durante la giornata</label><select id="mn">${[2,3,4,5,6].map(v=>`<option${v===f.n?' selected':''}>${v}</option>`).join('')}</select>
-${f.times.map((t,k)=>`<label>Missione ${k+1}: si attiva alle</label><input type="time" class="mt" data-k="${k}" value="${t}"><select class="ms" data-k="${k}">${mpool(f.lv).map(i=>`<option value="${i}"${f.picks[k]===i?' selected':''}>${esc(MISS[i].t.replace(/\{P\}/g,'lui/lei'))}</option>`).join('')}</select>`).join('')}`}
+${f.times.map((t,k)=>`<label>Missione ${k+1}: si attiva alle</label>${tsel(k,t)}<select class="ms" data-k="${k}">${mpool(f.lv).map(i=>`<option value="${i}"${f.picks[k]===i?' selected':''}>${esc(MISS[i].t.replace(/\{P\}/g,'lui/lei'))}</option>`).join('')}</select>`).join('')}`}
 // pulsante per cancellare la stanza (per entrambi i giocatori)
 const cxBtn='<button class="alt" id="cx">Annulla stanza</button>';
 
@@ -401,12 +403,11 @@ function play(){
  ${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p><p class="note">Brace v${APP_V}</p>`}
 function wire(){const q=id=>document.getElementById(id);
  if(fresh&&q('tc')){fresh=false;setTimeout(()=>{const t=q('tc');if(t){t.classList.remove('deal');t.classList.add('open','just')}},520)}
- if(q('hr'))q('hr').onchange=()=>{const f=F();f.hr=q('hr').value||'21:00';if(!f.touched)f.times=defTimes(f.n,f.hr);draw()};
+ $.querySelectorAll('.tp').forEach(d=>d.onchange=()=>{const[a,b]=d.querySelectorAll('select'),v=a.value+':'+b.value,f=F();if(d.dataset.key==='hr'){f.hr=v;if(!f.touched)f.times=defTimes(f.n,f.hr);draw()}else{f.times[+d.dataset.key]=v;f.touched=true}});
  if(q('lv'))q('lv').onchange=()=>{const f=F();f.lv=q('lv').checked;fixPicks(f);draw()};
  if(q('ps'))q('ps').onchange=()=>{F().ps=q('ps').checked};
  if(q('mn'))q('mn').onchange=()=>{const f=F();f.n=+q('mn').value;f.touched=false;f.times=defTimes(f.n,f.hr);fixPicks(f);draw()};
  $.querySelectorAll('.ms').forEach(i=>i.onchange=()=>{const f=F(),k=+i.dataset.k,v=+i.value,j=f.picks.indexOf(v);if(j>=0&&j!==k)f.picks[j]=f.picks[k];f.picks[k]=v;draw()});
- $.querySelectorAll('.mt').forEach(i=>i.onchange=()=>{const f=F();f.times[+i.dataset.k]=i.value;f.touched=true});
  if(q('mk'))q('mk').onclick=()=>{const f=F(),n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();create(n,f.hr,f.lv?2:1,f.ps,f.times.slice(),f.picks.slice()).catch(fail)};
  if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io',c=q('cd').value;store.set('brace-name',n);busy=true;draw();join(n,c).catch(fail)};
  if(q('lv2'))q('lv2').onclick=leave;
