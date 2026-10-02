@@ -124,7 +124,7 @@ CARDS.push({t:"Una playlist scelta solo per stasera",l:1},{t:"Un bagno caldo a l
 CARDS.forEach(c=>{if(!c.k)c.k=c.l===2?'a':'s'});
 // o = ore prima della serata; {P} = nome del partner
 const MISS=[
-{o:9,l:1,t:"Scrivi a {P} una frase che sai che lo/a farà arrossire."},
+{o:9,l:1,t:"Scrivi a {P} una frase che sai che lo farà arrossire."},
 {o:7,l:1,t:"Manda a {P} una foto di qualcosa che ti ricorda lui/lei, senza spiegazioni."},
 {o:6,l:2,t:"Dì a {P} in un messaggio una cosa precisa che vuoi fargli stasera."},
 {o:5,l:1,t:"Scrivi solo: «Ho un'idea per stasera.» Poi non aggiungere altro."},
@@ -221,7 +221,7 @@ const dkey=c=>'brace-drawn-'+c;
 const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
 const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
 let conf={given:[],got:[]},confOk=false;
-const APP_V=11;
+const APP_V=12;
 // se sul telefono c'è una versione vecchia in cache, scarica quella nuova e ricarica (una volta per sessione)
 (async()=>{try{const r=await fetch(location.href.split('#')[0].split('?')[0],{cache:'no-store'});const t=await r.text();const m=t.match(/const APP_V=(\d+)/);
  if(m&&+m[1]>APP_V&&!sessionStorage.getItem('brace-rl')){sessionStorage.setItem('brace-rl','1');if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}location.reload()}}catch(e){}})();
@@ -306,10 +306,12 @@ async function create(name,hour,lvl,pos,times,picks){
  const mis=os.map((o,j)=>({m:picks[j],o})).sort((x,y)=>y.o-x.o);
  const c=await rpc('brace_create_room',{p_player:pid,p_name:name,p_ev:d.toISOString(),p_lvl:lvl,p_pos:pos,p_mis:mis,p_deck:buildDeck(lvl===2,pos)});
  store.del(dkey(c));enter(c)}
-async function join(name,c){
+async function join(name,c,tk){
  c=c.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
- const r=await rpc('brace_join_room',{p_code:c,p_player:pid,p_name:name});
+ const r=await rpc(tk?'brace_takeover':'brace_join_room',{p_code:c,p_player:pid,p_name:name});
  if(r==='notfound'){err='Codice non trovato: controlla di averlo scritto giusto';busy=false;return draw()}
+ if(r==='noname'){err='In questa stanza non c\'è nessun giocatore con questo nome: scrivilo esattamente come lo avevi inserito';busy=false;return draw()}
+ if(r==='ambiguous'){err='I due giocatori hanno lo stesso nome: non posso capire quale sei';busy=false;return draw()}
  if(r==='full'){err='Stanza al completo: ci sono già due giocatori';busy=false;return draw()}
  if(r!=='ok'){err='Risposta inattesa dal server';busy=false;return draw()}
  enter(c)}
@@ -324,7 +326,7 @@ async function poll(){
  if(!code)return;
  try{
   const s=await rpc('brace_room_state',{p_code:code,p_player:pid});
-  if(!s){store.del(dkey(code));err='Stanza non trovata';leave();return}
+  if(!s){store.del(dkey(code));leave();err='Non sei più in questa stanza: è stata annullata, oppure hai ripreso il gioco da un altro dispositivo.';draw();return}
   if(!cfg){try{cfg=await rpc('brace_room_config',{p_code:code,p_player:pid})}catch(e){}}
   {const g=cfg||{};s.pos=g.pos;s.mis=g.mis;s.deck=g.deck}
   if(s.partner&&s.me.fin&&s.partner.fin&&!shared)shared=await rpc('brace_get_shared',{p_code:code,p_player:pid});
@@ -346,6 +348,7 @@ ${fmHtml()}
 <button id="mk" ${busy?'disabled':''}>Crea la stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
  if(hm==='join')return intro+`<div class="card">${name}
 <label>Codice della stanza</label><input type="text" id="cd" maxlength="4" placeholder="ABCD" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
+<label class="chk"><input type="checkbox" id="tk"> Ero già in questa stanza e sto cambiando dispositivo (riprendo la mia partita: l'altro dispositivo verrà escluso)</label>
 <p class="note">Ora della serata e modalità le ha scelte chi ha creato la stanza.</p>
 <button id="jn" ${busy?'disabled':''}>Entra nella stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
  return intro+`<div class="card"><button id="gn">Creo una stanza</button><button class="alt" id="gj">Ho un codice</button></div>`+e}
@@ -409,7 +412,7 @@ function wire(){const q=id=>document.getElementById(id);
  if(q('mn'))q('mn').onchange=()=>{const f=F();f.n=+q('mn').value;f.touched=false;f.times=defTimes(f.n,f.hr);fixPicks(f);draw()};
  $.querySelectorAll('.ms').forEach(i=>i.onchange=()=>{const f=F(),k=+i.dataset.k,v=+i.value,j=f.picks.indexOf(v);if(j>=0&&j!==k)f.picks[j]=f.picks[k];f.picks[k]=v;draw()});
  if(q('mk'))q('mk').onclick=()=>{const f=F(),n=q('nm').value||'Io';store.set('brace-name',n);busy=true;draw();create(n,f.hr,f.lv?2:1,f.ps,f.times.slice(),f.picks.slice()).catch(fail)};
- if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io',c=q('cd').value;store.set('brace-name',n);busy=true;draw();join(n,c).catch(fail)};
+ if(q('jn'))q('jn').onclick=()=>{const n=q('nm').value||'Io',c=q('cd').value,tk=q('tk').checked;store.set('brace-name',n);busy=true;draw();join(n,c,tk).catch(fail)};
  if(q('lv2'))q('lv2').onclick=leave;
  if(q('cx'))q('cx').onclick=cancelRoom;
  if(q('nm'))q('nm').oninput=()=>store.set('brace-name',q('nm').value);
