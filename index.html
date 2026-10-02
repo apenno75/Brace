@@ -125,7 +125,7 @@ CARDS.push({t:"Una playlist scelta solo per stasera",l:1},{t:"Un bagno caldo a l
 CARDS.forEach(c=>{if(!c.k)c.k=c.l===2?'a':'s'});
 // o = ore prima della serata; {P} = nome del partner
 const MISS=[
-{o:9,l:1,t:"Scrivi a {P} una frase che sai che lo farà arrossire."},
+{o:9,l:1,t:"Scrivi a {P} una frase che sai che lo/a farà arrossire."},
 {o:7,l:1,t:"Manda a {P} una foto di qualcosa che ti ricorda lui/lei, senza spiegazioni."},
 {o:6,l:2,t:"Dì a {P} in un messaggio una cosa precisa che vuoi fargli stasera."},
 {o:5,l:1,t:"Scrivi solo: «Ho un'idea per stasera.» Poi non aggiungere altro."},
@@ -219,10 +219,11 @@ let drawn={s:[],f:[],last:''};
 const dkey=c=>'brace-drawn-'+c;
 
 // ---- musica di sottofondo (parte con la tensione condivisa) ----
+const FIN=/^finale/i; // i brani il cui nome inizia con "finale" suonano solo nella schermata finale
 const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
 const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
 let conf={given:[],got:[]},confOk=false;
-const APP_V=13;
+const APP_V=14;
 // se sul telefono c'è una versione vecchia in cache, scarica quella nuova e ricarica (una volta per sessione)
 (async()=>{try{const r=await fetch(location.href.split('#')[0].split('?')[0],{cache:'no-store'});const t=await r.text();const m=t.match(/const APP_V=(\d+)/);
  if(m&&+m[1]>APP_V&&!sessionStorage.getItem('brace-rl')){sessionStorage.setItem('brace-rl','1');if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}location.reload()}}catch(e){}})();
@@ -239,7 +240,7 @@ async function mLoad(){
 async function mNext(){
  if(!mOn||mMuted())return;
  const t=await mLoad();if(!t.length)return;
- let c=t.filter(n=>n!==mLast);if(!c.length)c=t;
+ const rnd=t.filter(n=>!FIN.test(n));if(!rnd.length)return;let c=rnd.filter(n=>n!==mLast);if(!c.length)c=rnd;
  mLast=c[Math.floor(Math.random()*c.length)];
  if(!mAudio){mAudio=new Audio();mAudio.preload='auto';mAudio.volume=.6;mAudio.onended=mNext;mAudio.onerror=()=>setTimeout(mNext,1500)}
  mAudio.loop=false;mAudio.onended=mNext;mAudio.src=MP3_BASE+encodeURIComponent(mLast);
@@ -343,8 +344,8 @@ async function poll(){
 const favs=()=>{try{return JSON.parse(store.get('brace-favs')||'[]')}catch(e){return[]}};
 const addFavs=a=>{const f=favs();a.forEach(i=>{if(!f.includes(i))f.push(i)});store.set('brace-favs',JSON.stringify(f))};
 function endGame(){endMode=true;store.set('brace-end-'+code,'1');vpick=[];musicFinale();draw();window.scrollTo(0,0)}
-// brano lento: un mp3 il cui nome contiene "final", "lent" o "slow"; se non c'è, la musica si ferma
-function musicFinale(){mLoad().then(t=>{const f=t.find(n=>/final|lent|slow/i.test(n));
+// brano finale: un mp3 il cui nome inizia con "finale"; se non c'è, la musica si ferma
+function musicFinale(){mLoad().then(t=>{const f=t.find(n=>FIN.test(n));
  if(f&&!mMuted()){const a=mAudio||(mAudio=new Audio());mOn=false;a.onended=null;a.loop=true;a.volume=.5;a.src=MP3_BASE+encodeURIComponent(f);a.play().catch(()=>{})}else musicStop()}).catch(musicStop)}
 function sendFav(a){fav={...fav,me:true};draw();rpc('brace_submit_fav',{p_code:code,p_player:pid,p_fav:a}).then(poll).catch(fail)}
 async function closeNight(){
