@@ -10,44 +10,67 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0d0307;--ink:#fde8ec;--mute:#d2a2b1;--acc:#ff2d6b;--acc2:#ff8a4c;--gold:#f3c677;--rose:#ff8fb0;--line:rgba(255,95,135,.26);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@property --heat{syntax:'<number>';inherits:true;initial-value:0}
+@property --fx{syntax:'<percentage>';inherits:true;initial-value:50%}
+@property --fy{syntax:'<percentage>';inherits:true;initial-value:50%}
+:root{--bg:#0d0307;--ink:#fde8ec;--mute:#d2a2b1;--acc:#ff2d6b;--acc2:#ff8a4c;--gold:#f3c677;--rose:#ff8fb0;--line:rgba(255,95,135,.26);--serif:'Cormorant Garamond','Playfair Display',Georgia,'Times New Roman',serif;--heat:0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);transition:--heat 2.4s ease}
 *{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0;background:transparent;color:var(--ink);font-family:Georgia,'Times New Roman',serif;line-height:1.45;-webkit-tap-highlight-color:transparent}
-.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(900px 600px at 12% -8%,rgba(255,31,90,.30),transparent 62%),radial-gradient(800px 620px at 105% 108%,rgba(170,10,90,.38),transparent 60%),radial-gradient(520px 420px at 50% 55%,rgba(255,110,60,.09),transparent 70%),#0d0307}
-.bg i{position:absolute;bottom:-14px;left:var(--x);width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle,#ffd0a0,#ff2d6b 55%,transparent 72%);opacity:0;animation:ember var(--d) linear infinite;animation-delay:var(--l)}
+
+/* fondale: reagisce alla tensione (--heat da 0 a 1) */
+.bg{--sp:calc(1 + var(--heat,0)*1.1);position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(900px 600px at 12% -8%,rgba(255,31,90,.30),transparent 62%),radial-gradient(800px 620px at 105% 108%,rgba(170,10,90,.38),transparent 60%),radial-gradient(520px 420px at 50% 55%,rgba(255,110,60,.09),transparent 70%),#0d0307}
+.bg .gl{position:absolute;left:-15%;right:-15%;bottom:-25%;height:75%;background:radial-gradient(50% 60% at 50% 100%,rgba(255,80,40,.95),rgba(255,30,90,.45) 45%,transparent 72%);opacity:calc(.03 + var(--heat,0)*.6);animation:flick 5s ease-in-out infinite}
+@keyframes flick{0%,100%{transform:scale(1)}50%{transform:scale(1.07) translateY(-1%)}}
+.bg::before{content:'';position:absolute;inset:0;background:radial-gradient(70% 55% at 50% 0%,rgba(255,45,107,calc(var(--heat,0)*.28)),transparent 70%);}
+/* grana + vignettatura */
+.bg::after{content:'';position:absolute;inset:0;background-image:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(0,0,0,.55) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .86 0 0 0 0 .86 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:100% 100%,180px 180px;opacity:.9}
+.bg i{position:absolute;bottom:-14px;left:var(--x);width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle,#ffd0a0,#ff2d6b 55%,transparent 72%);opacity:0;animation:ember calc(var(--d) / var(--sp,1)) linear infinite;animation-delay:var(--l)}
+.bg i.x1,.bg i.x2,.bg i.x3{display:none}
+.bg.h1 i.x1,.bg.h2 i.x1,.bg.h3 i.x1,.bg.h2 i.x2,.bg.h3 i.x2,.bg.h3 i.x3{display:block}
 @keyframes ember{0%{transform:translate(0,0);opacity:0}12%{opacity:.9}100%{transform:translate(var(--dx),-108vh);opacity:0}}
 main{max-width:460px;margin:0 auto;padding:22px 18px 40px}
-h1{font-size:3.4rem;margin:.05em 0 .1em;font-style:italic;font-weight:400;letter-spacing:.02em;background:linear-gradient(90deg,#ffe0b0,#ff6a8a 45%,#ff1f5a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 16px rgba(255,45,107,.55))}
-h2{font-size:1.5rem;margin:.2em 0 .5em;font-weight:400}
+h1{font-family:var(--serif);font-size:4rem;line-height:1;margin:.05em 0 .1em;font-style:italic;font-weight:500;letter-spacing:.01em;background:linear-gradient(90deg,#ffe0b0,#ff6a8a 45%,#ff1f5a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 16px rgba(255,45,107,.55))}
+h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;margin:.2em 0 .5em;font-weight:500;font-style:italic}
 p{color:var(--mute);margin:.5em 0 1em}
 .card{position:relative;background:linear-gradient(160deg,rgba(80,12,40,.62),rgba(26,5,15,.84));border:1px solid var(--line);border-radius:20px;padding:20px;margin:14px 0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,170,195,.15)}
-button,input{font:inherit}
+button,input,textarea,select{font:inherit}
 button{background:linear-gradient(135deg,#ff2d6b,#c4124a 62%,#8f0b3a);color:#fff;border:0;border-radius:16px;padding:14px 18px;width:100%;margin:6px 0;cursor:pointer;letter-spacing:.03em;box-shadow:0 6px 22px rgba(255,31,90,.38),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .12s,box-shadow .2s}
 button:active{transform:scale(.975);box-shadow:0 2px 10px rgba(255,31,90,.4)}
 button:disabled{opacity:.42;filter:saturate(.4);box-shadow:none}
 button.alt{background:rgba(255,255,255,.03);color:var(--ink);border:1px solid var(--line);box-shadow:none}
 button.sm{width:auto;padding:8px 13px;font-size:.85rem}
 input[type=text],input[type=time]{width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(10,2,6,.55);color:var(--ink);margin:6px 0;outline:none}
-input[type=text]:focus,input[type=time]:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,45,107,.22)}
+input[type=text]:focus,input[type=time]:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,45,107,.22);outline:none}
 input[type=checkbox]{accent-color:var(--acc);width:20px;height:20px;flex:none}
-select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(10,2,6,.55);color:var(--ink);margin:6px 0;font:inherit}
+select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(10,2,6,.55);color:var(--ink);margin:6px 0}
 label{color:var(--mute);font-size:.85rem}
 .chk{display:flex;gap:10px;align-items:center;margin:12px 0;color:var(--ink)}
 .bar{height:12px;background:rgba(255,255,255,.07);border-radius:9px;overflow:hidden;margin:8px 0;box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8a4c,#ff2d6b 60%,#d4128f);box-shadow:0 0 14px rgba(255,45,107,.85);transition:width .6s}
+.bar.hot i{animation:throb 1.1s ease-in-out infinite}
+@keyframes throb{50%{box-shadow:0 0 26px rgba(255,90,60,1);filter:brightness(1.25)}}
+.heatl{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:1.05rem;margin:0 0 4px}
 .m{border-top:1px solid var(--line);padding:12px 0;display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
 .m:first-child{border-top:0}.lock{opacity:.4}
 .m.mini{justify-content:flex-start;align-items:center;gap:12px}
 .tag{font-size:.74rem;color:var(--gold);letter-spacing:.22em;text-transform:uppercase}
-.code{font-size:2.8rem;letter-spacing:.3em;text-align:center;margin:.2em 0;color:var(--gold);text-shadow:0 0 20px rgba(255,45,107,.75)}
+.code{font-family:var(--serif);font-size:3.2rem;letter-spacing:.3em;text-align:center;margin:.2em 0;color:var(--gold);text-shadow:0 0 20px rgba(255,45,107,.75)}
 .note{font-size:.8rem;color:var(--mute)}
 .err{color:#ffb08a}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.row3 button{padding:12px 4px;font-size:.88rem;margin:6px 0}
+textarea.tx{width:100%;min-height:78px;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(10,2,6,.55);color:var(--ink);margin:6px 0;resize:vertical;outline:none}
+textarea.tx:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,45,107,.22)}
 
 /* menù a schede */
 .hd{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
 .hd h2{margin:0}.hd .sm{margin:0 0 4px}
+.hd .bt{display:flex;flex-direction:column;gap:2px;align-items:flex-end}
 .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px -18px 8px;padding:8px 18px;background:rgba(13,3,7,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .tb{position:relative;width:100%;margin:0;padding:10px 2px;font-size:.8rem;letter-spacing:.01em;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);box-shadow:none;color:var(--mute)}
 .tb.on{background:linear-gradient(135deg,#ff2d6b,#c4124a 62%,#8f0b3a);color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(255,31,90,.38)}
@@ -60,28 +83,37 @@ label{color:var(--mute);font-size:.85rem}
 .il .g{fill:rgba(243,198,119,.28)}
 .il .w{stroke:var(--rose)}
 .il .t{fill:#ffe0b0;stroke:none}
+/* corpi delle posizioni: tubi pieni sovrapposti */
+.il .tb{stroke:var(--rose)}.il .tb.g{stroke:var(--gold)}
+.il .ti{stroke:#7a1740}.il .ti.g{stroke:#7a5a22}
+.il .hd{fill:#7a1740;stroke:var(--rose)}.il .hd.g{fill:#7a5a22;stroke:var(--gold)}
 .logo{width:54px;height:54px;--sw:3.4;margin:4px 0 0}
 .mini .il{width:36px;height:36px;flex:none;--sw:5;filter:none}
 
 /* domanda del questionario */
 .qc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:16em}
 .qc .il{width:116px;height:116px;--sw:2.8}
-.qt{font-size:1.3rem;font-style:italic;color:#ffe9d2;line-height:1.35}
+.qt{font-family:var(--serif);font-size:1.6rem;font-style:italic;font-weight:500;color:#ffe9d2;line-height:1.22}
 .rise{animation:rise .5s ease-out both}
 @keyframes rise{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
 
 /* carta che si gira */
-.tcard{position:relative;width:min(100%,280px);aspect-ratio:3/4.3;margin:16px auto;perspective:1200px;-webkit-perspective:1200px}
+.tcard{--fx:50%;--fy:50%;position:relative;width:min(100%,280px);aspect-ratio:3/4.3;margin:16px auto;perspective:1200px;-webkit-perspective:1200px}
 .tin{position:absolute;inset:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform 1.1s cubic-bezier(.3,.9,.3,1)}
 .tcard.open .tin{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;border-radius:20px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .back{background:repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 2px,transparent 2px 13px),repeating-linear-gradient(-45deg,rgba(255,255,255,.05) 0 2px,transparent 2px 13px),radial-gradient(circle at 50% 38%,#c4124a,#5a0720 70%,#2a030d);border:1.5px solid rgba(243,198,119,.6);box-shadow:0 18px 46px rgba(255,31,90,.32),inset 0 0 0 6px rgba(13,3,7,.55),inset 0 0 0 7px rgba(243,198,119,.35)}
 .back .il{width:58%;height:auto;--sw:2.2}
-.bn{font-style:italic;letter-spacing:.5em;text-indent:.5em;color:var(--gold);margin-top:6px}
+.bn{font-family:var(--serif);font-style:italic;font-size:1.2rem;letter-spacing:.5em;text-indent:.5em;color:var(--gold);margin-top:6px}
 .front{transform:rotateY(180deg);-webkit-transform:rotateY(180deg);background:radial-gradient(120% 90% at 50% 18%,#5e0f2e 0%,#2b0716 60%,#150309 100%);border:1.5px solid rgba(243,198,119,.6);box-shadow:0 18px 50px rgba(255,31,90,.3),inset 0 0 0 6px rgba(13,3,7,.9),inset 0 0 0 7px rgba(243,198,119,.35);padding:30px 22px 26px}
 .front::before{content:'';position:absolute;inset:0;background:radial-gradient(60% 38% at 50% 40%,rgba(255,45,107,.30),transparent 72%);pointer-events:none}
+/* foil che scivola con il dito / l'inclinazione */
+.front .foil{position:absolute;inset:0;pointer-events:none;border-radius:20px;opacity:.9;background:linear-gradient(115deg,transparent 28%,rgba(255,226,170,.26) 40%,rgba(255,120,180,.30) 50%,rgba(140,200,255,.20) 60%,transparent 72%);background-size:260% 260%;background-position:var(--fx) var(--fy)}
+.tcard.open:not(.pt) .front .foil{animation:fsh 7s ease-in-out infinite alternate}
+@keyframes fsh{from{--fx:12%;--fy:10%}to{--fx:88%;--fy:90%}}
 .front .il{width:60%;max-width:170px;height:auto;position:relative}
-.ctext{position:relative;font-style:italic;font-size:1.18rem;text-align:center;line-height:1.3;color:#ffe9d2;margin-top:12px;padding:0 4px}
+.ctext.sm{font-size:1.2rem}.ctext.xs{font-size:1.05rem}
+.ctext{position:relative;font-family:var(--serif);font-weight:500;font-style:italic;font-size:1.42rem;text-align:center;line-height:1.14;color:#ffe9d2;margin-top:12px;padding:0 4px}
 .cn{position:absolute;color:var(--acc);font-style:normal;font-size:1.05rem}
 .cn.tl{top:15px;left:18px}.cn.br{bottom:15px;right:18px;transform:rotate(180deg)}
 .ftag{position:absolute;top:17px;left:0;right:0;text-align:center;font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
@@ -95,39 +127,274 @@ label{color:var(--mute);font-size:.85rem}
 .tcard.idle .back{animation:breathe 3s ease-in-out infinite}
 @keyframes breathe{50%{box-shadow:0 18px 60px rgba(255,31,90,.6),inset 0 0 0 6px rgba(13,3,7,.55),inset 0 0 0 7px rgba(243,198,119,.5)}}
 .dim .il{animation:lull 4s ease-in-out infinite}@keyframes lull{50%{opacity:.35}}
-@media (prefers-reduced-motion:reduce){.bg i{display:none}.dim .il{animation:none}.tin{transition-duration:.01s}.tcard.just,.tcard.deal,.rise,.tcard.idle .back{animation:none}}
+
+/* fasi della serata */
+.ph{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:6px;margin:8px 0 14px}
+.ph .p{position:relative;text-align:center;padding:9px 2px 7px;border-radius:13px;border:1px solid var(--line);color:var(--mute);background:rgba(255,255,255,.025)}
+.ph .p b{display:block;font-family:var(--serif);font-style:italic;font-weight:600;font-size:1.05rem;color:inherit;line-height:1.1}
+.ph .p small{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.ph .p.on{color:#fff;background:linear-gradient(135deg,rgba(255,45,107,.85),rgba(143,11,58,.9));border-color:transparent;box-shadow:0 4px 18px rgba(255,31,90,.4)}
+.ph .p.ok{color:var(--gold);border-color:rgba(243,198,119,.45)}
+.pdesc{font-family:var(--serif);font-style:italic;font-size:1.05rem;color:var(--mute);text-align:center;margin:0 0 4px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 4px}
+.seg button{margin:0;padding:10px;font-size:.88rem}
+.seg button.on{background:linear-gradient(135deg,#ff2d6b,#c4124a 62%,#8f0b3a);color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(255,31,90,.38)}
+.lead{text-align:center;font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--gold);margin:-4px 0 6px}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0}
+.chips button{width:auto;margin:0;padding:8px 14px;font-size:.84rem}
+.tmr{text-align:center;margin:8px 0}
+.tmr .tv{font-family:var(--serif);font-size:2.6rem;color:var(--gold);text-shadow:0 0 18px rgba(255,45,107,.6);letter-spacing:.06em}
+.tmr .bar{margin:4px 0 8px}
+
+/* dadi */
+.dice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.die{position:relative;min-height:96px;border-radius:16px;border:1.5px solid rgba(243,198,119,.55);background:radial-gradient(120% 100% at 50% 0%,#5e0f2e,#220512);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 8px 10px;box-shadow:0 8px 24px rgba(255,31,90,.25),inset 0 0 0 4px rgba(13,3,7,.7)}
+.die .dl{position:absolute;top:7px;left:0;right:0;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.die .dv{font-family:var(--serif);font-style:italic;font-weight:600;font-size:1.22rem;line-height:1.1;color:#ffe9d2}
+.die.roll{animation:shake .18s linear infinite}
+@keyframes shake{25%{transform:translate(2px,-1px) rotate(1.4deg)}75%{transform:translate(-2px,1px) rotate(-1.4deg)}}
+.dres{font-family:var(--serif);font-style:italic;font-size:1.55rem;line-height:1.2;text-align:center;color:#ffe9d2;margin:10px 4px;text-shadow:0 0 16px rgba(255,45,107,.5)}
+.dres.pend{opacity:0}.dres{transition:opacity .6s}
+
+/* finestre di conferma */
+.ov{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(8,1,4,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fadein .2s ease-out both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.dlg{width:min(100%,380px);padding:24px 22px 18px;border-radius:22px;border:1px solid rgba(243,198,119,.5);background:linear-gradient(160deg,rgba(90,14,46,.97),rgba(26,5,15,.98));box-shadow:0 24px 70px rgba(0,0,0,.7),0 0 40px rgba(255,31,90,.25);text-align:center;animation:rise .28s ease-out both}
+.dlg h3{font-family:var(--serif);font-style:italic;font-weight:600;font-size:1.65rem;margin:.3em 0 .2em;color:#ffe9d2}
+.dlg p{margin:.4em 0 1em}
+.dlg.danger{border-color:rgba(255,120,90,.7);box-shadow:0 24px 70px rgba(0,0,0,.7),0 0 46px rgba(255,70,50,.38)}
+.dlg.danger .tag{color:#ff9a7a}
+
+@media (prefers-reduced-motion:reduce){.bg i,.bg .gl{display:none}.dim .il{animation:none}.tin{transition-duration:.01s}.tcard.just,.tcard.deal,.rise,.tcard.idle .back,.bar.hot i,.front .foil,.die.roll{animation:none}:root{transition:none}}
 </style>
 </head>
 <body>
-<div class="bg" id="bg"></div>
+<div class="bg" id="bg"><div class="gl"></div></div>
 <main id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
+
 const SUPABASE_URL='https://erukzvrtjnvyzjvfuirn.supabase.co';
 const VAPID='BKUF6FNwP6eF5btFp_pnu8c3VJOOtkLJn6WS21yDOUw1wh-mPGsbnVDI8XXBD-qQrG9-XYHjHw4-b5hda4kNCBw';
 const SUPABASE_KEY='sb_publishable_FDhQ03affjzeyhCHuoKulg_Rp7PdyLM';
 
-// l:1 = sensuale, l:2 = audace/esplicito (solo se la stanza è in modalità audace)
+// ---- disegni (linee sensuali): ogni carta punta al suo disegno per nome, non per posizione ----
+
+const LIB={
+massaggio:'<path class="f" d="M60 14C60 14 38 42 38 60A22 22 0 0 0 82 60C82 42 60 14 60 14Z"/><path class="w" d="M49 62A11 11 0 0 0 60 73"/><path d="M16 94q11-9 22 0t22 0 22 0 22 0"/><path class="w" d="M26 106q9-7 18 0t18 0 18 0 18 0"/>',
+benda:'<path class="f" d="M10 48C35 36 72 36 98 48L98 72C72 84 35 84 10 72Z"/><path class="w" d="M18 53C40 45 68 45 90 53M18 67C40 75 68 75 90 67"/><circle class="g" cx="98" cy="60" r="6"/><path d="M102 56C112 48 114 40 110 30M102 64C112 72 114 82 108 92"/>',
+baci:'<path class="f" d="M16 62C30 44 46 42 60 52C74 42 90 44 104 62C88 84 32 84 16 62Z"/><path class="w" d="M16 62C42 72 78 72 104 62"/><path class="w" d="M42 50C50 50 55 52 60 55"/>',
+ruolo:'<path class="f" d="M12 54C26 38 44 44 60 52C76 44 94 38 108 54C104 76 84 80 72 64C66 58 54 58 48 64C36 80 16 76 12 54Z"/><ellipse cx="35" cy="58" rx="10" ry="5.5"/><ellipse cx="85" cy="58" rx="10" ry="5.5"/><path class="w" d="M60 44V22M60 44L48 28M60 44L72 28"/>',
+spogliare:'<path d="M74 12L70 38"/><path d="M50 38C38 30 28 40 28 58"/><path class="f" d="M50 38C54 52 66 52 70 38L84 108H36Z"/><path class="w" d="M38 96C52 88 68 104 82 96"/>',
+doccia:'<path d="M104 14H74C64 14 60 18 60 24"/><path class="f" d="M32 38C32 26 44 24 60 24C76 24 88 26 88 38Z"/><path class="w" d="M40 48L36 60M54 50L50 66M68 50L64 66M82 48L78 60M46 74L43 86M60 78L57 92M74 74L71 86M38 96L36 104M82 96L80 104"/>',
+sussurro:'<path class="f" d="M70 20C98 18 104 52 90 68C84 76 86 90 72 94C60 96 56 86 62 80"/><path class="w" d="M72 42C84 40 86 56 78 62C74 66 76 72 72 74"/><path d="M34 50C28 58 28 68 34 76M22 40C10 54 10 72 22 86"/>',
+posto:'<path class="f" d="M34 20H74V108H34Z"/><path class="g" d="M74 20L100 30V98L74 108Z"/><circle cx="92" cy="66" r="2.5"/><path class="w" d="M34 108L12 116M34 94L12 106"/>',
+ballo:'<path d="M72 8V30"/><path class="f" d="M52 62L60 30H84L92 62Z"/><path class="w" d="M56 72L46 104M72 74V108M88 72L98 104"/><path d="M24 44V26L38 22V40"/><circle class="f" cx="19" cy="46" r="5"/><circle class="f" cx="33" cy="42" r="5"/>',
+comandare:'<path class="f" d="M24 88L28 46L48 66L60 36L72 66L92 46L96 88Z"/><path d="M22 100H98"/><path class="w" d="M30 77H90"/><circle class="g" cx="28" cy="40" r="4"/><circle class="g" cx="60" cy="30" r="4"/><circle class="g" cx="92" cy="40" r="4"/>',
+ricevere:'<path class="f" d="M28 100C28 56 56 22 98 18C98 62 70 90 34 94Z"/><path d="M22 108L84 38"/><path class="w" d="M44 84L58 82M54 70L70 66M64 58L80 52"/>',
+messaggio:'<rect x="58" y="10" width="44" height="86" rx="8"/><path d="M72 18H88"/><rect class="f" x="12" y="42" width="66" height="36" rx="10"/><path d="M28 78L24 94L44 78"/><path class="g" d="M45 68C34 61 37 50 45 54C53 50 56 61 45 68Z"/>',
+fragola:'<path class="f" d="M60 104C26 88 20 58 30 48C40 40 52 46 60 44C68 46 80 40 90 48C100 58 94 88 60 104Z"/><path class="g" d="M38 40C44 28 54 28 60 36C66 28 76 28 82 40C72 38 64 42 60 46C56 42 48 38 38 40Z"/><path d="M60 36V20"/><circle class="t" cx="44" cy="60" r="2"/><circle class="t" cx="60" cy="58" r="2"/><circle class="t" cx="76" cy="60" r="2"/><circle class="t" cx="52" cy="74" r="2"/><circle class="t" cx="68" cy="74" r="2"/><circle class="t" cx="60" cy="88" r="2"/>',
+sessantanove:'<circle class="f" cx="44" cy="76" r="16"/><path d="M28 76C28 50 40 36 58 32"/><circle class="f" cx="76" cy="44" r="16"/><path d="M92 44C92 70 80 84 62 88"/>',
+giocattolo:'<rect class="f" x="26" y="54" width="68" height="46" rx="4"/><rect x="20" y="42" width="80" height="16" rx="4"/><path d="M60 42V100"/><path d="M60 42C50 26 34 26 38 36C42 44 56 42 60 42ZM60 42C70 26 86 26 82 36C78 44 64 42 60 42Z"/>',
+polsi:'<path class="f" d="M60 56C40 28 14 36 18 54C22 70 46 64 60 56Z"/><path class="f" d="M60 56C80 28 106 36 102 54C98 70 74 64 60 56Z"/><circle class="g" cx="60" cy="58" r="7"/><path d="M55 64C50 82 40 94 30 108M65 64C70 82 80 94 92 106"/>',
+sculacciata:'<path d="M24 106L88 46"/><path d="M22 108L38 92" style="stroke-width:7"/><path class="f" d="M92 48C76 38 80 20 92 26C104 20 108 38 92 48Z"/>',
+guardare:'<path class="f" d="M12 62C34 28 86 28 108 62C86 96 34 96 12 62Z"/><circle cx="60" cy="62" r="18"/><circle cx="60" cy="62" r="8" style="fill:#12040a;stroke:none"/><circle class="t" cx="65" cy="57" r="2.6"/><path class="w" d="M24 40L18 30M44 32L40 20M76 32L80 20M96 40L102 30"/>',
+paroleSporche:'<path class="f" d="M20 20H100A8 8 0 0 1 108 28V70A8 8 0 0 1 100 78H62L42 98L46 78H20A8 8 0 0 1 12 70V28A8 8 0 0 1 20 20Z"/><path class="g" d="M60 68C46 64 44 50 54 38C55 46 59 47 60 41C69 47 76 60 60 68Z"/>',
+limite:'<path d="M18 84A42 42 0 0 1 102 84"/><path class="w" d="M89.7 54.3A42 42 0 0 1 102 84" style="stroke-width:6"/><path d="M60 84L90 56"/><circle class="f" cx="60" cy="84" r="5"/><path d="M30 54L36 60M60 42V50"/><path d="M50 100V116M70 100V116" style="stroke-width:5"/>',
+specchio:'<ellipse class="f" cx="60" cy="48" rx="30" ry="38"/><ellipse cx="60" cy="48" rx="23" ry="31"/><path d="M60 86V110" style="stroke-width:7"/><path class="w" d="M45 32C49 27 55 23 61 23"/><path class="g" d="M60 70C48 62 50 50 60 54C70 50 72 62 60 70Z"/>',
+cambia:'<circle class="f" cx="60" cy="60" r="26"/><path d="M60 44V60L72 66"/><path d="M22 50A40 40 0 0 1 60 20M52 12L60 20L52 28"/><path d="M98 70A40 40 0 0 1 60 100M68 108L60 100L68 92"/>',
+fantasia:'<path class="f" d="M32 74C14 74 12 50 30 48C28 30 52 22 62 36C72 24 98 32 92 52C110 56 106 76 88 74Z"/><circle cx="40" cy="88" r="5"/><circle cx="28" cy="102" r="3"/><path class="g" d="M60 38L64 48L75 49L66 56L69 67L60 61L51 67L54 56L45 49L56 48Z"/>',
+soloSi:'<path class="f" d="M60 106C18 76 18 36 42 34C52 33 58 39 60 45C62 39 68 33 78 34C102 36 102 76 60 106Z"/><path d="M42 66L55 79L80 50" style="stroke-width:5"/>',
+playlist:'<path class="w" d="M46 94V30L88 20V84"/><path d="M46 44L88 34"/><circle class="f" cx="38" cy="96" r="10"/><circle class="f" cx="80" cy="86" r="10"/>',
+candela:'<rect class="f" x="44" y="54" width="32" height="50" rx="3"/><path d="M60 54V44"/><path class="g" d="M60 14C68 26 72 32 60 42C48 32 52 26 60 14Z"/><path class="w" d="M30 108H90"/>',
+cena:'<path class="f" d="M38 16H82C82 48 74 62 60 62C46 62 38 48 38 16Z"/><path d="M60 62V100M42 104H78"/><path class="w" d="M42 34H78"/>',
+piuma:'<path class="f" d="M92 14C50 16 30 48 34 84C70 80 94 52 92 14Z"/><path class="w" d="M34 84L22 108M44 74L74 40M42 60L58 46"/>',
+baciOvunque:'<path class="f" d="M30 50C16 38 28 24 38 34C48 24 60 38 46 50L38 58Z"/><path class="f" d="M70 80C56 68 68 54 78 64C88 54 100 68 86 80L78 88Z"/><path class="g" d="M88 24L91 32L99 34L91 38L88 46L85 38L77 34L85 32Z"/>',
+pelle:'<path class="f" d="M82 18C52 20 36 52 50 80C60 98 84 102 100 90C74 92 62 60 82 18Z"/><path class="g" d="M92 40L95 47L102 48L96 53L98 60L92 56L86 60L88 53L82 48L89 47Z"/>',
+};
+
+// ---- nuovi motivi: stessa grammatica dei vecchi (f rosa pieno, g oro pieno, w rosa linea, t punto) ----
+const _h=(x,y,s,c)=>`<path class="${c||'f'}" d="M${x} ${y+s*.9}C${x-s*1.5} ${y-s*.2} ${x-s*.7} ${y-s} ${x} ${y-s*.35}C${x+s*.7} ${y-s} ${x+s*1.5} ${y-s*.2} ${x} ${y+s*.9}Z"/>`;
+const _hand=(x,y,s,r,c)=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><rect class="${c}" x="-17" y="-2" width="34" height="30" rx="12"/><rect class="${c}" x="-17" y="-30" width="8" height="34" rx="4"/><rect class="${c}" x="-8" y="-37" width="8" height="40" rx="4"/><rect class="${c}" x="1" y="-35" width="8" height="38" rx="4"/><rect class="${c}" x="10" y="-28" width="7" height="31" rx="3.5"/><rect class="${c}" x="-31" y="-6" width="8" height="26" rx="4" transform="rotate(-34 -27 8)"/></g>`;
+Object.assign(LIB,{
+occhi:'<path class="f" d="M5 60C16 43 42 43 54 60C42 77 16 77 5 60Z"/><circle cx="29" cy="60" r="9"/><circle class="t" cx="29" cy="60" r="3.4"/><path class="g" d="M66 60C78 43 104 43 115 60C104 77 78 77 66 60Z"/><circle cx="91" cy="60" r="9"/><circle class="t" cx="91" cy="60" r="3.4"/><path class="w" d="M56 60H64"/><path class="w" d="M20 36L16 28M38 33L36 24M82 33L84 24M100 36L104 28"/>',
+respiro:'<circle class="f" cx="46" cy="52" r="27"/><circle class="g" cx="74" cy="52" r="27"/><path class="w" d="M28 100q8-8 16 0t16 0 16 0 16 0"/><path class="w" d="M36 112q6-6 12 0t12 0 12 0 12 0" style="opacity:.55"/>',
+gamba:'<path class="f" d="M18 106C24 86 34 78 46 68C58 58 68 44 94 28L104 44C84 58 76 70 66 80C56 90 48 98 36 110Z"/>'+_h(40,92,6,'g')+_h(62,70,6,'g')+_h(84,48,6,'g'),
+bacioCuore:'<path class="f" d="M60 106C18 76 18 36 42 34C52 33 58 39 60 45C62 39 68 33 78 34C102 36 102 76 60 106Z"/><path class="g" d="M42 62C49 54 56 56 60 61C64 56 71 54 78 62C71 78 49 78 42 62Z"/><path class="w" d="M42 62C54 68 66 68 78 62"/>',
+schiena:'<path class="f" d="M42 12C28 40 28 80 42 108H78C92 80 92 40 78 12Z"/><circle class="t" cx="60" cy="26" r="2.6"/><circle class="t" cx="60" cy="40" r="2.6"/><circle class="t" cx="60" cy="54" r="2.6"/><circle class="t" cx="60" cy="68" r="2.6"/><circle class="t" cx="60" cy="82" r="2.6"/><circle class="t" cx="60" cy="96" r="2.6"/>'+_h(98,54,6,'g'),
+ciliegie:'<path d="M60 16C52 36 44 58 40 78M60 16C68 38 76 58 82 78"/><path class="g" d="M60 16C74 6 90 10 98 22C84 26 70 24 60 16Z"/><circle class="f" cx="38" cy="88" r="17"/><circle class="f" cx="84" cy="88" r="17"/><path class="w" d="M28 82A11 11 0 0 1 36 74M74 82A11 11 0 0 1 82 74"/>',
+libro:'<path class="f" d="M60 34C46 24 26 24 12 30V92C26 86 46 86 60 96C74 86 94 86 108 92V30C94 24 74 24 60 34Z"/><path d="M60 34V96"/><path class="w" d="M24 46C32 44 42 45 50 49M24 58C32 56 42 57 50 61M70 49C78 45 88 44 96 46M70 61C78 57 88 56 96 58"/><path class="g" d="M60 6C65 14 69 17 67 23C65 28 55 28 53 23C51 17 56 14 60 6Z"/>',
+abbraccio:'<circle class="f" cx="46" cy="28" r="11"/><circle class="g" cx="74" cy="32" r="11"/><path d="M24 78C24 52 34 46 46 46C54 46 58 52 58 58"/><path class="w" d="M96 80C96 56 86 50 74 50C66 50 62 54 62 60"/><path class="w" d="M28 74C44 100 76 100 92 74"/><path d="M34 90C48 108 72 108 86 90" style="opacity:.5"/>',
+scrittura:'<path class="w" d="M16 92C24 56 42 54 42 72C42 90 60 92 68 66C72 54 86 52 94 60C100 66 96 76 88 76"/><path class="f" d="M86 26L104 44L70 80L56 84L60 70Z"/><path d="M80 32L98 50"/>',
+capelli:'<path class="f" d="M34 16C20 44 48 58 34 82C28 94 36 104 44 108C52 98 46 88 52 78C60 62 40 44 34 16Z"/><path class="w" d="M56 14C42 44 70 60 56 84C50 96 58 106 66 108M78 16C64 44 92 60 78 84C72 96 80 106 88 108"/><circle class="g" cx="98" cy="34" r="7"/><circle class="g" cx="26" cy="96" r="5"/>',
+mappa:'<path class="f" d="M12 32L42 22L78 34L108 24V88L78 98L42 86L12 96Z"/><path d="M42 22V86M78 34V98"/><path class="w" d="M24 72C38 58 52 70 62 54C72 40 86 50 96 38" style="stroke-dasharray:2 6"/><path class="g" d="M88 30l12 12m0-12L88 42"/>',
+clessidra:'<path class="f" d="M32 14H88C88 42 68 52 60 60C52 52 32 42 32 14Z"/><path d="M32 106H88C88 78 68 68 60 60C52 68 32 78 32 106Z"/><path d="M26 14H94M26 106H94"/><circle class="t" cx="60" cy="40" r="2.6"/><circle class="t" cx="60" cy="86" r="2.6"/><circle class="t" cx="54" cy="96" r="2.6"/><circle class="t" cx="66" cy="96" r="2.6"/>',
+vino:'<g transform="rotate(-22 60 60)"><path class="f" d="M38 20H82C82 54 74 68 60 68C46 68 38 54 38 20Z"/><path d="M60 68V98M42 104H78"/><path class="w" d="M40 36H80"/></g><path class="g" d="M96 70C90 80 90 86 96 86C102 86 102 80 96 70Z"/><path class="g" d="M84 90C80 96 80 100 84 100C88 100 88 96 84 90Z"/>',
+treBaci:_h(28,76,13)+_h(60,44,13,'g')+_h(92,76,13)+'<path class="w" d="M34 56C44 46 48 44 52 44M70 44C76 44 84 52 88 58" style="stroke-dasharray:2 5"/>',
+maniGuida:_hand(46,70,.9,-18,'g')+_hand(74,60,.9,22,'f'),
+maniFerme:'<circle class="w" cx="60" cy="60" r="50" style="stroke-dasharray:3 7"/>'+_hand(60,66,1.05,0,'f')+'<path class="w" d="M26 94L94 26" style="stroke-width:3.4"/>',
+lucchetto:'<rect class="f" x="30" y="52" width="60" height="48" rx="9"/><path d="M42 52V38C42 26 50 18 60 18C70 18 78 26 78 38V52"/><path class="g" d="M60 86C49 79 51 69 60 74C69 69 71 79 60 86Z"/>',
+silenzio:'<path class="f" d="M22 82C34 68 48 68 60 76C72 68 86 68 98 82C86 100 34 100 22 82Z"/><path class="w" d="M22 82C48 88 72 88 98 82"/><rect class="g" x="53" y="10" width="14" height="66" rx="7"/>',
+buio:'<path class="f" d="M12 52C34 78 86 78 108 52C86 36 34 36 12 52Z"/><path class="w" d="M26 68L20 82M46 74L42 90M64 76V92M84 74L88 90M98 68L104 82"/><path class="g" d="M90 18L93 25L100 27L93 30L90 37L87 30L80 27L87 25Z"/><path class="g" d="M28 16L30 21L35 22L30 24L28 29L26 24L21 22L26 21Z"/>',
+voce:'<path class="f" d="M12 48H32L58 26V94L32 72H12Z"/><path class="w" d="M70 44C80 54 80 66 70 76M82 32C100 52 100 68 82 88M94 20C120 48 120 72 94 100"/>',
+polsiSu:'<circle class="f" cx="60" cy="98" r="10"/><path d="M52 90C40 70 44 50 56 30M68 90C80 70 76 50 64 30"/><rect class="g" x="48" y="18" width="24" height="16" rx="8"/><path class="w" d="M42 106C48 112 72 112 78 106"/>',
+ghiaccio:'<path class="f" d="M60 16L98 36V82L60 104L22 82V36Z"/><path d="M60 16V60M22 36L60 60L98 36M60 60V104"/><path class="w" d="M34 46L46 52M72 78L84 70"/><path class="g" d="M96 94C90 102 90 108 96 108C102 108 102 102 96 94Z"/>',
+onde:'<path class="w" d="M16 40q11-11 22 0t22 0 22 0 22 0"/><path d="M16 62q11-11 22 0t22 0 22 0 22 0"/><path class="w" d="M16 84q11-11 22 0t22 0 22 0 22 0"/>'+_h(60,20,8,'g'),
+rosa:'<path class="f" d="M60 18C40 18 28 34 32 52C36 70 52 76 60 76C68 76 84 70 88 52C92 34 80 18 60 18Z"/><path class="w" d="M60 32C50 32 46 42 50 50C54 58 64 58 68 50C70 44 66 38 60 38"/><path d="M60 76V108M60 94C48 90 42 96 40 104C52 106 58 102 60 94"/>',
+saponata:'<circle class="f" cx="44" cy="72" r="28"/><circle class="g" cx="86" cy="42" r="17"/><circle class="f" cx="90" cy="88" r="11"/><circle class="g" cx="30" cy="28" r="9"/><path class="w" d="M30 60A16 16 0 0 1 42 50M80 34A8 8 0 0 1 86 30"/>',
+passi:'<path class="f" d="M12 104V88H38V72H64V56H90V40H108V104Z"/><path class="w" d="M26 70L94 16"/><path class="w" d="M80 14L96 14L94 30"/>',
+camicia:'<path class="f" d="M40 16L12 34L26 60L40 52V106H80V52L94 60L108 34L80 16C76 28 44 28 40 16Z"/><path class="w" d="M60 28V106"/><circle class="t" cx="66" cy="48" r="2.2"/><circle class="t" cx="66" cy="66" r="2.2"/><circle class="t" cx="66" cy="84" r="2.2"/>',
+cuori2:'<path class="f" d="M44 96C10 72 10 34 31 32C40 31 44 36 46 40C48 36 52 31 61 32C82 34 82 72 44 96Z"/><path class="g" d="M76 106C42 82 42 44 63 42C72 41 76 46 78 50C80 46 84 41 93 42C114 44 114 82 76 106Z"/>',
+sipario:'<path d="M10 16H110"/><path class="f" d="M14 16H56C54 52 44 84 34 106H14Z"/><path class="f" d="M106 16H64C66 52 76 84 86 106H106Z"/><path class="g" d="M60 52L63 60L72 62L65 67L67 76L60 71L53 76L55 67L48 62L57 60Z"/>',
+acqua:'<path class="f" d="M32 20H88L82 102H38Z"/><path class="w" d="M35 52C48 46 62 58 86 50"/><path class="g" d="M96 34C90 44 90 50 96 50C102 50 102 44 96 34Z"/>',
+coperta:'<path class="f" d="M10 50C30 38 50 56 70 44C88 34 100 44 110 38V92C98 98 86 90 66 102C48 110 28 94 10 102Z"/><path class="w" d="M10 66C30 54 50 72 70 60C88 50 100 60 110 54"/><circle class="g" cx="30" cy="30" r="9"/><circle class="g" cx="54" cy="26" r="7"/>',
+stella:'<path class="f" d="M60 12L73 45L108 48L81 71L90 106L60 87L30 106L39 71L12 48L47 45Z"/>',
+luna:'<circle class="f" cx="60" cy="60" r="40"/><circle class="g" cx="46" cy="46" r="7"/><circle cx="76" cy="68" r="10"/><circle cx="50" cy="80" r="4"/>',
+});
+
+// ---- posizioni: corpi a tubo pieni, rosa e oro, che si sovrappongono e si intrecciano ----
+const _T=(d,w,c)=>`<path class="tb ${c||''}" d="${d}" style="stroke-width:${+w+3.4}"/><path class="ti ${c||''}" d="${d}" style="stroke-width:${+w}"/>`;
+const _K=(x,y,c)=>`<circle class="hd ${c||''}" cx="${x}" cy="${y}" r="7.5"/>`;
+const _fl='<path d="M6 108H114" style="opacity:.4"/>';
+Object.assign(LIB,{
+pos_missionario:_fl+_T('M30 94C46 98 62 98 78 94','13')+_T('M78 94L99 74','10')+_T('M99 74L109 96','8')+_T('M76 98C92 100 104 96 110 86','9')+_K(20,90)+
+ _T('M44 62C60 62 74 68 84 78','14','g')+_T('M84 78L100 92','10','g')+_T('M100 92L108 106','8','g')+_T('M84 80L90 98','9','g')+_T('M46 66L40 94','6','g')+_K(36,56,'g'),
+pos_cucchiaio:_fl+_T('M34 74C48 84 66 90 86 88','14')+_T('M86 88L100 100','10')+_T('M100 100L78 106','8')+_K(24,68)+
+ _T('M46 44C58 58 76 66 94 66','13','g')+_T('M94 66L106 80','10','g')+_T('M106 80L90 96','8','g')+_T('M50 54C50 66 52 72 58 78','6','g')+_K(38,38,'g'),
+pos_amazzone:_fl+_T('M24 100H98','13')+_T('M98 100L110 96','9')+_K(14,96)+
+ _T('M62 40V68','14','g')+_T('M62 70L38 92','11','g')+_T('M62 70L86 92','11','g')+_T('M38 92L26 104','8','g')+_T('M86 92L98 104','8','g')+_T('M62 48C54 58 50 66 46 74','6','g')+_K(62,28,'g'),
+pos_pecorina:_fl+_T('M32 60C48 62 62 62 78 66','13')+_T('M36 64L34 102','7')+_T('M78 66L76 86','10')+_T('M76 86L70 104','8')+_K(23,57)+
+ _T('M96 44C96 58 92 68 90 78','14','g')+_T('M94 52L80 66','6','g')+_T('M90 78L84 96','10','g')+_T('M84 96L100 104','8','g')+_K(97,32,'g'),
+pos_loto:_T('M46 42V68','14')+_T('M46 68C32 78 36 96 58 96','10')+_T('M58 96C74 100 84 90 82 80','8')+_K(46,32)+
+ _T('M74 42V68','14','g')+_T('M74 68C88 78 84 96 62 96','10','g')+_T('M62 96C46 100 36 90 38 80','8','g')+_T('M74 52C64 58 54 58 44 52','6','g')+_T('M46 54C56 60 66 60 76 54','6')+_K(74,32,'g'),
+pos_inpiedi:'<path d="M12 10V110" style="opacity:.55"/>'+_T('M30 40L32 68','14')+_T('M32 68L29 106','10')+_T('M32 68C46 70 52 78 52 88','9')+_K(30,29)+
+ _T('M60 40C58 52 57 62 56 72','14','g')+_T('M58 48L38 56','6','g')+_T('M56 72L51 106','10','g')+_T('M56 72L68 106','10','g')+_K(61,29,'g'),
+pos_sedia:'<path d="M14 20V108M14 70H76M76 70V108" style="opacity:.5"/>'+_T('M42 44L44 70','14')+_T('M44 70L76 72','10')+_T('M76 72L80 106','8')+_K(41,33)+
+ _T('M62 36C60 50 58 60 54 68','13','g')+_T('M60 42C52 46 48 50 46 56','6','g')+_T('M54 68L80 64','9','g')+_T('M80 64L88 86','8','g')+_K(63,25,'g'),
+pos_forbici:_fl+_T('M22 90H58','13')+_T('M58 90L100 74','10')+_T('M58 92L104 102','10')+_K(13,86)+
+ _T('M100 68H62','13','g')+_T('M62 68L22 80','10','g')+_T('M62 68L16 58','10','g')+_K(108,66,'g'),
+pos_farfalla:'<path class="g" d="M6 88H68V100H6Z" style="opacity:.8"/>'+_T('M26 82H64','13')+_T('M64 82C76 72 84 58 88 46','10')+_T('M62 84C74 78 82 68 90 62','10')+_K(17,78)+
+ _T('M98 40V72','14','g')+_T('M98 72L92 106','10','g')+_T('M98 72L108 106','10','g')+_T('M98 50L82 64','6','g')+_K(98,28,'g'),
+pos_carriola:_fl+_T('M30 80L68 70','13')+_T('M34 84L28 106','7')+_T('M46 80L50 106','7')+_T('M68 70L88 68','10')+_T('M68 72L90 74','10')+_K(21,76)+
+ _T('M98 42V76','14','g')+_T('M98 76L92 106','10','g')+_T('M98 76L108 106','10','g')+_T('M98 58L88 70','6','g')+_K(98,30,'g'),
+pos_bordo:'<path d="M6 68H72" style="opacity:.6"/>'+_T('M26 54C38 58 50 62 62 62','13')+_T('M62 62C76 66 86 60 92 52','10')+_T('M62 64C72 74 74 84 72 96','10')+_K(18,50)+
+ _T('M94 40V74','14','g')+_T('M94 74L88 106','10','g')+_T('M94 74L104 106','10','g')+_T('M94 50C86 54 78 56 72 60','6','g')+_K(94,28,'g'),
+pos_prono:_fl+_T('M22 96C44 102 72 102 98 98','13')+_T('M98 98L110 100','9')+_K(13,92)+
+ _T('M36 80C56 78 76 82 94 88','13','g')+_T('M94 88L110 94','9','g')+_T('M38 84L36 98','6','g')+_K(26,76,'g'),
+pos_spalle:_fl+_T('M22 98C38 102 54 102 68 98','13')+_T('M68 98L88 62','10')+_T('M88 62L98 46','8')+_T('M70 100L92 68','10')+_K(12,94)+
+ _T('M98 40V74','14','g')+_T('M98 74L82 96','10','g')+_T('M82 96L100 106','8','g')+_T('M98 52L86 64','6','g')+_K(98,28,'g'),
+pos_girandola:_fl+_T('M26 96C46 102 66 102 88 96','13')+_T('M88 96L108 100','9')+_K(16,92)+
+ _T('M40 58C58 64 72 74 84 78','13','g')+_T('M84 78L106 90','9','g')+_K(30,50,'g')+'<path class="w" d="M96 24A30 30 0 0 1 108 52M104 22L96 24L100 32" style="stroke-width:2.2"/>',
+});
+
+
+// ---- mazzo -------------------------------------------------------------
+// l:1 sensuale · l:2 audace (solo se la stanza è in modalità audace) · l:3 posizione · k:'z' = «cenere» (fine serata, mai nel mazzo)
+// a = chiave del disegno in LIB (il disegno è dentro la carta: niente più indici paralleli)
+// g / r = testo per chi FA / per chi RICEVE (carte con ruoli). {P} = nome del partner.
+// ATTENZIONE: le prime 40 carte restano agli stessi indici di prima (le stanze già create le usano).
+const C=(t,l,a,o)=>Object.assign({t,l,a},o||{});
 const CARDS=[
-{t:"Un massaggio lento con l'olio",l:1},{t:"Una benda sugli occhi",l:1},{t:"Dieci minuti di baci lenti, senza andare oltre",l:1},
-{t:"Un gioco di ruolo",l:1},{t:"Spogliarsi a vicenda, un capo alla volta",l:1},{t:"Una doccia insieme",l:1},
-{t:"Sussurrare una fantasia all'orecchio",l:1},{t:"Un posto insolito della casa",l:1},{t:"Ballare vicinissimi a luci basse",l:1},
-{t:"Comandare per dieci minuti",l:1},{t:"Ricevere senza dover fare nulla",l:1},{t:"Un messaggio audace durante la serata",l:1},
-{t:"Sesso orale, dato e ricevuto",l:2},{t:"Un 69",l:2},{t:"Usare un giocattolo insieme",l:2},
-{t:"Polsi legati con una sciarpa",l:2},{t:"Sculacciate leggere",l:2},{t:"Toccarsi davanti all'altro, senza essere toccati",l:2},
-{t:"Parole sporche a letto, senza vergogna",l:2},{t:"Portare l'altro al limite e fermarsi, più volte",l:2},
-{t:"Fare sesso davanti a uno specchio",l:2},{t:"Cambiare posizione ogni cinque minuti",l:2},
-{t:"Raccontare la fantasia più spinta, senza giudizio",l:2},{t:"Una serata in cui si dice solo «sì»",l:2}];
-// nuove carte: 24-29 sensuali, 30-39 posizioni (k:'p', solo con Modalità Posizioni)
-CARDS.push({t:"Una playlist scelta solo per stasera",l:1},{t:"Un bagno caldo a lume di candela",l:1},{t:"Cenare in intimo, imboccandosi a vicenda",l:1},{t:"Carezze lente con una piuma",l:1},{t:"Baciarsi ovunque tranne che sulle labbra",l:1},{t:"Addormentarsi pelle contro pelle",l:1},
-{t:"Missionario: faccia a faccia, senza fretta",l:3,k:'p'},{t:"Cucchiaio: abbracciati di fianco",l:3,k:'p'},{t:"Amazzone: chi sta sopra decide il ritmo",l:3,k:'p'},{t:"Pecorina: da dietro, a quattro zampe",l:3,k:'p'},{t:"Loto: seduti, abbracciati e vicinissimi",l:3,k:'p'},
-{t:"In piedi, contro il muro",l:3,k:'p'},{t:"Sulla sedia: uno seduto, l'altro sopra",l:3,k:'p'},{t:"Forbici: sdraiati, gambe intrecciate",l:3,k:'p'},{t:"Farfalla: schiena sul bordo del letto",l:3,k:'p'},{t:"Carriola: per i più acrobatici",l:3,k:'p'});
+/*0*/C("Un massaggio lento con l'olio",1,'massaggio',{g:"Massaggi {P} lentamente, con l'olio",r:"{P} ti massaggia lentamente, con l'olio"}),
+/*1*/C("Una benda sugli occhi",1,'benda',{g:"Bendi {P} e conduci tu la scena",r:"{P} ti benda e conduce la scena"}),
+/*2*/C("Dieci minuti di baci lenti, senza andare oltre",1,'baci'),
+/*3*/C("Un gioco di ruolo",1,'ruolo'),
+/*4*/C("Spogliarsi a vicenda, un capo alla volta",1,'spogliare'),
+/*5*/C("Una doccia insieme",1,'doccia'),
+/*6*/C("Sussurrare una fantasia all'orecchio",1,'sussurro'),
+/*7*/C("Un posto insolito della casa",1,'posto'),
+/*8*/C("Ballare vicinissimi a luci basse",1,'ballo'),
+/*9*/C("Comandare per dieci minuti",1,'comandare',{g:"Comandi tu per dieci minuti: {P} esegue",r:"Per dieci minuti esegui ciò che {P} ordina"}),
+/*10*/C("Ricevere senza dover fare nulla",1,'ricevere',{g:"Dai a {P} tutto ciò che desidera, senza chiedere nulla",r:"Ricevi senza dover fare nulla: {P} pensa a tutto"}),
+/*11*/C("Un messaggio audace durante la serata",1,'messaggio'),
+/*12*/C("Sesso orale, dato e ricevuto",2,'fragola',{g:"Dai piacere a {P} con la bocca, senza fretta",r:"{P} ti dà piacere con la bocca, senza fretta"}),
+/*13*/C("Un 69",2,'sessantanove'),
+/*14*/C("Usare un giocattolo insieme",2,'giocattolo',{g:"Usi il giocattolo su {P}, piano, chiedendo come va",r:"{P} usa il giocattolo su di te, piano, e ti ascolta"}),
+/*15*/C("Polsi legati con una sciarpa",2,'polsi',{g:"Leghi i polsi di {P} con una sciarpa, morbida",r:"{P} ti lega i polsi con una sciarpa, morbida"}),
+/*16*/C("Sculacciate leggere",2,'sculacciata',{g:"Sculacci {P} con leggerezza, ascoltando le reazioni",r:"{P} ti sculaccia con leggerezza, e ascolta come reagisci"}),
+/*17*/C("Toccarsi davanti all'altro, senza essere toccati",2,'guardare'),
+/*18*/C("Parole sporche a letto, senza vergogna",2,'paroleSporche'),
+/*19*/C("Portare l'altro al limite e fermarsi, più volte",2,'limite',{g:"Porti {P} al limite e ti fermi, più volte",r:"{P} ti porta al limite e si ferma, più volte"}),
+/*20*/C("Fare sesso davanti a uno specchio",2,'specchio'),
+/*21*/C("Cambiare posizione ogni cinque minuti",2,'cambia'),
+/*22*/C("Raccontare la fantasia più spinta, senza giudizio",2,'fantasia'),
+/*23*/C("Una serata in cui si dice solo «sì»",2,'soloSi'),
+/*24*/C("Una playlist scelta solo per stasera",1,'playlist'),
+/*25*/C("Un bagno caldo a lume di candela",1,'candela'),
+/*26*/C("Cenare in intimo, imboccandosi a vicenda",1,'cena'),
+/*27*/C("Carezze lente con una piuma",1,'piuma',{g:"Accarezzi {P} con una piuma, lentamente",r:"{P} ti accarezza con una piuma, lentamente"}),
+/*28*/C("Baciarsi ovunque tranne che sulle labbra",1,'baciOvunque'),
+/*29*/C("Addormentarsi pelle contro pelle",1,'pelle'),
+/*30*/C("Missionario: faccia a faccia, senza fretta",3,'pos_missionario',{k:'p'}),
+/*31*/C("Cucchiaio: abbracciati di fianco",3,'pos_cucchiaio',{k:'p'}),
+/*32*/C("Amazzone: chi sta sopra decide il ritmo",3,'pos_amazzone',{k:'p'}),
+/*33*/C("Pecorina: da dietro, a quattro zampe",3,'pos_pecorina',{k:'p'}),
+/*34*/C("Loto: seduti, abbracciati e vicinissimi",3,'pos_loto',{k:'p'}),
+/*35*/C("In piedi, contro il muro",3,'pos_inpiedi',{k:'p'}),
+/*36*/C("Sulla sedia: uno seduto, l'altro sopra",3,'pos_sedia',{k:'p'}),
+/*37*/C("Forbici: sdraiati, gambe intrecciate",3,'pos_forbici',{k:'p'}),
+/*38*/C("Farfalla: schiena sul bordo del letto",3,'pos_farfalla',{k:'p'}),
+/*39*/C("Carriola: per i più acrobatici",3,'pos_carriola',{k:'p'}),
+// ---- nuove carte sensuali (40-53) ----
+/*40*/C("Guardarsi negli occhi per tre minuti, senza parlare",1,'occhi'),
+/*41*/C("Respirare insieme, fronte contro fronte",1,'respiro'),
+/*42*/C("Dalla caviglia all'interno coscia, solo con le labbra, lentissimo",1,'gamba',{g:"Percorri con le labbra la gamba di {P}, dalla caviglia all'interno coscia, lentissimo",r:"{P} percorre con le labbra la tua gamba, dalla caviglia all'interno coscia, lentissimo"}),
+/*43*/C("Un bacio per ogni cosa che ami dell'altro, dicendola ad alta voce",1,'bacioCuore'),
+/*44*/C("Una striscia di baci lungo la schiena, vertebra dopo vertebra",1,'schiena',{g:"Baci la schiena di {P}, vertebra dopo vertebra, senza fretta",r:"{P} ti bacia la schiena, vertebra dopo vertebra, senza fretta"}),
+/*45*/C("Imboccarsi al buio e indovinare cosa si assaggia",1,'ciliegie'),
+/*46*/C("Leggere a turno un brano erotico",1,'libro'),
+/*47*/C("Un abbraccio da dietro, per un minuto intero, solo respiro",1,'abbraccio'),
+/*48*/C("Scrivere una parola con un dito sulla schiena dell'altro, e farla indovinare",1,'scrittura',{g:"Scrivi con un dito una parola sulla schiena di {P}: deve indovinarla",r:"{P} scrive con un dito una parola sulla tua schiena: indovinala"}),
+/*49*/C("Lavarsi i capelli a vicenda, senza fretta",1,'capelli',{g:"Lavi i capelli di {P}, senza fretta, con le dita lente",r:"{P} ti lava i capelli, senza fretta, con le dita lente"}),
+/*50*/C("Disegnare sul corpo dell'altro, con un dito, la mappa di dove si vuole essere toccati",1,'mappa'),
+/*51*/C("Restare nudi e immobili, a guardarsi, finché uno dei due non cede",1,'clessidra'),
+/*52*/C("Un sorso di vino passato di bocca in bocca",1,'vino'),
+/*53*/C("Tre baci, nei punti scelti da chi li riceve",1,'treBaci',{g:"Dai a {P} tre baci, nei punti che sceglie",r:"Scegli i tre punti dove {P} ti bacia"}),
+// ---- nuove carte audaci (54-68) ----
+/*54*/C("Guidare la mano dell'altro: «qui, così, più piano»",2,'maniGuida',{g:"Guidi la mano di {P}: «qui, così, più piano»",r:"{P} guida la tua mano: «qui, così, più piano»"}),
+/*55*/C("Chi riceve non può toccare per dieci minuti",2,'maniFerme',{g:"Per dieci minuti fai tu, e {P} non può toccarti",r:"Per dieci minuti non puoi toccare {P}: solo ricevere"}),
+/*56*/C("Orgasmo negato: l'altro decide quando",2,'lucchetto',{g:"Decidi tu quando {P} può arrivare",r:"{P} decide quando potrai arrivare"}),
+/*57*/C("Fare l'amore in silenzio assoluto",2,'silenzio'),
+/*58*/C("Sesso al buio completo, solo con il tatto",2,'buio'),
+/*59*/C("Dire a voce alta cosa si prova, mentre accade",2,'voce'),
+/*60*/C("Polsi bloccati dolcemente sopra la testa",2,'polsiSu',{g:"Tieni i polsi di {P} sopra la testa, con dolcezza",r:"{P} ti tiene i polsi sopra la testa, con dolcezza"}),
+/*61*/C("Ghiaccio e bacio caldo, lungo il corpo",2,'ghiaccio',{g:"Fai scorrere un cubetto di ghiaccio sul corpo di {P}, poi lo segui con un bacio caldo",r:"{P} fa scorrere un cubetto di ghiaccio sul tuo corpo, poi lo segue con un bacio caldo"}),
+/*62*/C("Una carezza intima sopra la biancheria, finché il respiro cambia",2,'onde',{g:"Accarezzi {P} sopra la biancheria, finché il suo respiro cambia",r:"{P} ti accarezza sopra la biancheria, finché il tuo respiro cambia"}),
+/*63*/C("Inginocchiarsi davanti all'altro, con calma, e restare lì",2,'rosa',{g:"Ti inginocchi davanti a {P}, con calma, e resti lì",r:"{P} si inginocchia davanti a te, con calma, e resta lì"}),
+/*64*/C("Una doccia con le mani insaponate, ovunque, lentissimo",2,'saponata',{g:"Lavi {P} con le mani insaponate, ovunque, lentissimo",r:"{P} ti lava con le mani insaponate, ovunque, lentissimo"}),
+/*65*/C("Raccontare passo per passo cosa si farà all'altro, prima di farlo",2,'passi',{g:"Racconti a {P}, a voce bassa, cosa farai, passo per passo. Poi lo fai",r:"{P} ti racconta a voce bassa cosa ti farà, passo per passo. Poi lo fa"}),
+/*66*/C("Indossare solo ciò che l'altro ha scelto per te",2,'camicia',{g:"Scegli tu cosa indosserà {P} stasera, e solo quello",r:"Stasera indossi solo ciò che {P} ha scelto per te"}),
+/*67*/C("Provare ad arrivare insieme, guardandosi negli occhi",2,'cuori2'),
+/*68*/C("Mettere in scena una fantasia: uno la racconta, l'altro la dirige",2,'sipario',{g:"Dirigi la fantasia di {P}: la racconta {P}, tu la metti in scena",r:"Racconti una fantasia a {P}, e {P} la dirige e la mette in scena"}),
+// ---- nuove posizioni (69-72) ----
+/*69*/C("Sul bordo: uno seduto sul piano, l'altro in piedi tra le gambe",3,'pos_bordo',{k:'p'}),
+/*70*/C("Prono: a pancia in giù, l'altro sopra, schiena contro petto",3,'pos_prono',{k:'p'}),
+/*71*/C("Gambe sulle spalle: sdraiati, l'altro in ginocchio davanti",3,'pos_spalle',{k:'p'}),
+/*72*/C("Girandola: dal missionario, uno ruota lentamente fino a dare la schiena",3,'pos_girandola',{k:'p'}),
+// ---- «cenere»: carte di fine serata (73-80), pescate solo nell'ultima fase ----
+/*73*/C("Restare abbracciati, senza parlare, per un minuto intero",1,'abbraccio',{k:'z'}),
+/*74*/C("Un bicchiere d'acqua a testa: portatelo all'altro",1,'acqua',{k:'z'}),
+/*75*/C("Dite a turno una cosa che vi è piaciuta stasera",1,'voce',{k:'z'}),
+/*76*/C("Una carezza lenta sulla schiena, finché ci si addormenta",1,'schiena',{k:'z'}),
+/*77*/C("Coprirsi con la stessa coperta e restare un po' in silenzio",1,'coperta',{k:'z'}),
+/*78*/C("Un bacio sulla fronte e un grazie, detto ad alta voce",1,'stella',{k:'z'}),
+/*79*/C("Raccontarsi il momento preferito della serata",1,'luna',{k:'z'}),
+/*80*/C("All'orecchio, una cosa che vorreste rifare",1,'sussurro',{k:'z'})];
 CARDS.forEach(c=>{if(!c.k)c.k=c.l===2?'a':'s'});
-// o = ore prima della serata; {P} = nome del partner
+// carte con ruoli: ogni carta «dare/ricevere» genera due carte virtuali (A = dà chi ha il nome che viene prima in ordine alfabetico, B = l'altro).
+// Le risposte viaggiano come indici di queste carte virtuali: così le combinazioni asimmetriche si incrociano senza toccare il server.
+const VID={};
+CARDS.slice().forEach((c,i)=>{if(c.g){['A','B'].forEach(d=>{VID[i+d]=CARDS.length;CARDS.push({v:i,d,k:null,l:c.l})})}});
+const kindOf=i=>{const c=CARDS[i];return c?(c.v!==undefined?CARDS[c.v].k:c.k):'s'};
+const baseOf=i=>{const c=CARDS[i];return c&&c.v!==undefined?c.v:i};
+const art=i=>{const c=CARDS[baseOf(i)];return(c&&LIB[c.a])||''};
+const ico=i=>'<svg class="il" viewBox="0 0 120 120" aria-hidden="true">'+art(i)+'</svg>';
+
+// o = ore prima della serata; {P} = nome del partner (testi neutri: valgono per qualsiasi coppia)
 const MISS=[
-{o:9,l:1,t:"Scrivi a {P} una frase che sai che lo/a farà arrossire."},
-{o:7,l:1,t:"Manda a {P} una foto di qualcosa che ti ricorda lui/lei, senza spiegazioni."},
-{o:6,l:2,t:"Dì a {P} in un messaggio una cosa precisa che vuoi fargli stasera."},
+{o:9,l:1,t:"Scrivi a {P} una frase da far arrossire, e inviala senza commenti."},
+{o:7,l:1,t:"Manda a {P} la foto di qualcosa che ti fa pensare a voi due, senza spiegazioni."},
+{o:6,l:2,t:"Scrivi a {P}, in un messaggio, una cosa precisa che vuoi fare stasera."},
 {o:5,l:1,t:"Scrivi solo: «Ho un'idea per stasera.» Poi non aggiungere altro."},
 {o:3,l:1,t:"Sfida: non toccare {P} fino alla serata, nemmeno per sbaglio."},
 {o:2,l:2,t:"Racconta a {P}, in un vocale, cosa stai immaginando."},
@@ -135,95 +402,113 @@ const MISS=[
 {o:.5,l:1,t:"Uno sguardo lungo, senza parlare. Poi avvicinati."}];
 // missioni 8-19: gli orari li sceglie chi crea la stanza (non hanno un'ora fissa)
 MISS.push(
-{l:1,t:"Scegli una canzone che ti fa pensare a {P} e mandagliela, senza commenti."},
+{l:1,t:"Scegli una canzone che ti fa pensare a {P} e mandala, senza commenti."},
 {l:1,t:"Scrivi a {P} tre parole che descrivono come ti senti stasera."},
 {l:1,t:"Manda a {P} un vocale di dieci secondi: solo un sussurro, «a stasera»."},
 {l:1,t:"Per il resto della giornata rispondi a {P} con una sola parola per messaggio."},
 {l:1,t:"Nascondi un biglietto per {P} dove lo troverà senza aspettarselo."},
 {l:1,t:"Manda a {P} il ricordo più bello che hai di voi due, con una sola riga di commento."},
-{l:1,t:"Scegli cosa indosserai stasera pensando a {P}, senza dirgli nulla."},
+{l:1,t:"Scegli cosa indosserai stasera pensando a {P}, senza anticipare nulla."},
 {l:2,t:"Scrivi a {P} dove vorresti le sue mani stasera."},
 {l:2,t:"Manda a {P} una foto sensuale ma elegante, che lasci immaginare."},
-{l:2,t:"Dì a {P} cosa non vedi l'ora di togliergli di dosso stasera."},
+{l:2,t:"Dì a {P} cosa non vedi l'ora di togliere, stasera."},
 {l:2,t:"Scrivi a {P} una fantasia in tre righe, senza dire se la vivrete stasera."},
 {l:2,t:"Registra un vocale in cui racconti a {P} una vostra notte indimenticabile."});
 
+// ---- fasi della serata ----
+const PHASES=[
+{k:'s',n:'Preludio',d:'sguardi, carezze lente, respiro'},
+{k:'a',n:'Brace',d:'il desiderio sale'},
+{k:'p',n:'Fuoco',d:'i corpi si cercano'},
+{k:'z',n:'Cenere',d:'restare vicini, piano'}];
 
-// ---- disegni (linee sensuali, uno per carta, stesso ordine di CARDS) ----
-const ART=[
-/*0 massaggio*/'<path class="f" d="M60 14C60 14 38 42 38 60A22 22 0 0 0 82 60C82 42 60 14 60 14Z"/><path class="w" d="M49 62A11 11 0 0 0 60 73"/><path d="M16 94q11-9 22 0t22 0 22 0 22 0"/><path class="w" d="M26 106q9-7 18 0t18 0 18 0 18 0"/>',
-/*1 benda*/'<path class="f" d="M10 48C35 36 72 36 98 48L98 72C72 84 35 84 10 72Z"/><path class="w" d="M18 53C40 45 68 45 90 53M18 67C40 75 68 75 90 67"/><circle class="g" cx="98" cy="60" r="6"/><path d="M102 56C112 48 114 40 110 30M102 64C112 72 114 82 108 92"/>',
-/*2 baci*/'<path class="f" d="M16 62C30 44 46 42 60 52C74 42 90 44 104 62C88 84 32 84 16 62Z"/><path class="w" d="M16 62C42 72 78 72 104 62"/><path class="w" d="M42 50C50 50 55 52 60 55"/>',
-/*3 gioco di ruolo*/'<path class="f" d="M12 54C26 38 44 44 60 52C76 44 94 38 108 54C104 76 84 80 72 64C66 58 54 58 48 64C36 80 16 76 12 54Z"/><ellipse cx="35" cy="58" rx="10" ry="5.5"/><ellipse cx="85" cy="58" rx="10" ry="5.5"/><path class="w" d="M60 44V22M60 44L48 28M60 44L72 28"/>',
-/*4 spogliarsi*/'<path d="M74 12L70 38"/><path d="M50 38C38 30 28 40 28 58"/><path class="f" d="M50 38C54 52 66 52 70 38L84 108H36Z"/><path class="w" d="M38 96C52 88 68 104 82 96"/>',
-/*5 doccia*/'<path d="M104 14H74C64 14 60 18 60 24"/><path class="f" d="M32 38C32 26 44 24 60 24C76 24 88 26 88 38Z"/><path class="w" d="M40 48L36 60M54 50L50 66M68 50L64 66M82 48L78 60M46 74L43 86M60 78L57 92M74 74L71 86M38 96L36 104M82 96L80 104"/>',
-/*6 sussurro*/'<path class="f" d="M70 20C98 18 104 52 90 68C84 76 86 90 72 94C60 96 56 86 62 80"/><path class="w" d="M72 42C84 40 86 56 78 62C74 66 76 72 72 74"/><path d="M34 50C28 58 28 68 34 76M22 40C10 54 10 72 22 86"/>',
-/*7 posto insolito*/'<path class="f" d="M34 20H74V108H34Z"/><path class="g" d="M74 20L100 30V98L74 108Z"/><circle cx="92" cy="66" r="2.5"/><path class="w" d="M34 108L12 116M34 94L12 106"/>',
-/*8 ballare luci basse*/'<path d="M72 8V30"/><path class="f" d="M52 62L60 30H84L92 62Z"/><path class="w" d="M56 72L46 104M72 74V108M88 72L98 104"/><path d="M24 44V26L38 22V40"/><circle class="f" cx="19" cy="46" r="5"/><circle class="f" cx="33" cy="42" r="5"/>',
-/*9 comandare*/'<path class="f" d="M24 88L28 46L48 66L60 36L72 66L92 46L96 88Z"/><path d="M22 100H98"/><path class="w" d="M30 77H90"/><circle class="g" cx="28" cy="40" r="4"/><circle class="g" cx="60" cy="30" r="4"/><circle class="g" cx="92" cy="40" r="4"/>',
-/*10 ricevere*/'<path class="f" d="M28 100C28 56 56 22 98 18C98 62 70 90 34 94Z"/><path d="M22 108L84 38"/><path class="w" d="M44 84L58 82M54 70L70 66M64 58L80 52"/>',
-/*11 messaggio audace*/'<rect x="58" y="10" width="44" height="86" rx="8"/><path d="M72 18H88"/><rect class="f" x="12" y="42" width="66" height="36" rx="10"/><path d="M28 78L24 94L44 78"/><path class="g" d="M45 68C34 61 37 50 45 54C53 50 56 61 45 68Z"/>',
-/*12 fragola*/'<path class="f" d="M60 104C26 88 20 58 30 48C40 40 52 46 60 44C68 46 80 40 90 48C100 58 94 88 60 104Z"/><path class="g" d="M38 40C44 28 54 28 60 36C66 28 76 28 82 40C72 38 64 42 60 46C56 42 48 38 38 40Z"/><path d="M60 36V20"/><circle class="t" cx="44" cy="60" r="2"/><circle class="t" cx="60" cy="58" r="2"/><circle class="t" cx="76" cy="60" r="2"/><circle class="t" cx="52" cy="74" r="2"/><circle class="t" cx="68" cy="74" r="2"/><circle class="t" cx="60" cy="88" r="2"/>',
-/*13 69*/'<circle class="f" cx="44" cy="76" r="16"/><path d="M28 76C28 50 40 36 58 32"/><circle class="f" cx="76" cy="44" r="16"/><path d="M92 44C92 70 80 84 62 88"/>',
-/*14 giocattolo (sorpresa)*/'<rect class="f" x="26" y="54" width="68" height="46" rx="4"/><rect x="20" y="42" width="80" height="16" rx="4"/><path d="M60 42V100"/><path d="M60 42C50 26 34 26 38 36C42 44 56 42 60 42ZM60 42C70 26 86 26 82 36C78 44 64 42 60 42Z"/>',
-/*15 polsi legati*/'<path class="f" d="M60 56C40 28 14 36 18 54C22 70 46 64 60 56Z"/><path class="f" d="M60 56C80 28 106 36 102 54C98 70 74 64 60 56Z"/><circle class="g" cx="60" cy="58" r="7"/><path d="M55 64C50 82 40 94 30 108M65 64C70 82 80 94 92 106"/>',
-/*16 sculacciate*/'<path d="M24 106L88 46"/><path d="M22 108L38 92" style="stroke-width:7"/><path class="f" d="M92 48C76 38 80 20 92 26C104 20 108 38 92 48Z"/>',
-/*17 guardare*/'<path class="f" d="M12 62C34 28 86 28 108 62C86 96 34 96 12 62Z"/><circle cx="60" cy="62" r="18"/><circle cx="60" cy="62" r="8" style="fill:#12040a;stroke:none"/><circle class="t" cx="65" cy="57" r="2.6"/><path class="w" d="M24 40L18 30M44 32L40 20M76 32L80 20M96 40L102 30"/>',
-/*18 parole sporche*/'<path class="f" d="M20 20H100A8 8 0 0 1 108 28V70A8 8 0 0 1 100 78H62L42 98L46 78H20A8 8 0 0 1 12 70V28A8 8 0 0 1 20 20Z"/><path class="g" d="M60 68C46 64 44 50 54 38C55 46 59 47 60 41C69 47 76 60 60 68Z"/>',
-/*19 al limite*/'<path d="M18 84A42 42 0 0 1 102 84"/><path class="w" d="M89.7 54.3A42 42 0 0 1 102 84" style="stroke-width:6"/><path d="M60 84L90 56"/><circle class="f" cx="60" cy="84" r="5"/><path d="M30 54L36 60M60 42V50"/><path d="M50 100V116M70 100V116" style="stroke-width:5"/>',
-/*20 specchio*/'<ellipse class="f" cx="60" cy="48" rx="30" ry="38"/><ellipse cx="60" cy="48" rx="23" ry="31"/><path d="M60 86V110" style="stroke-width:7"/><path class="w" d="M45 32C49 27 55 23 61 23"/><path class="g" d="M60 70C48 62 50 50 60 54C70 50 72 62 60 70Z"/>',
-/*21 cambiare posizione*/'<circle class="f" cx="60" cy="60" r="26"/><path d="M60 44V60L72 66"/><path d="M22 50A40 40 0 0 1 60 20M52 12L60 20L52 28"/><path d="M98 70A40 40 0 0 1 60 100M68 108L60 100L68 92"/>',
-/*22 fantasia*/'<path class="f" d="M32 74C14 74 12 50 30 48C28 30 52 22 62 36C72 24 98 32 92 52C110 56 106 76 88 74Z"/><circle cx="40" cy="88" r="5"/><circle cx="28" cy="102" r="3"/><path class="g" d="M60 38L64 48L75 49L66 56L69 67L60 61L51 67L54 56L45 49L56 48Z"/>',
-/*23 solo sì*/'<path class="f" d="M60 106C18 76 18 36 42 34C52 33 58 39 60 45C62 39 68 33 78 34C102 36 102 76 60 106Z"/><path d="M42 66L55 79L80 50" style="stroke-width:5"/>'
-];
-ART.push(
-/*24 playlist*/'<path class="w" d="M46 94V30L88 20V84"/><path d="M46 44L88 34"/><circle class="f" cx="38" cy="96" r="10"/><circle class="f" cx="80" cy="86" r="10"/>',
-/*25 candela*/'<rect class="f" x="44" y="54" width="32" height="50" rx="3"/><path d="M60 54V44"/><path class="g" d="M60 14C68 26 72 32 60 42C48 32 52 26 60 14Z"/><path class="w" d="M30 108H90"/>',
-/*26 cena*/'<path class="f" d="M38 16H82C82 48 74 62 60 62C46 62 38 48 38 16Z"/><path d="M60 62V100M42 104H78"/><path class="w" d="M42 34H78"/>',
-/*27 piuma*/'<path class="f" d="M92 14C50 16 30 48 34 84C70 80 94 52 92 14Z"/><path class="w" d="M34 84L22 108M44 74L74 40M42 60L58 46"/>',
-/*28 baci ovunque*/'<path class="f" d="M30 50C16 38 28 24 38 34C48 24 60 38 46 50L38 58Z"/><path class="f" d="M70 80C56 68 68 54 78 64C88 54 100 68 86 80L78 88Z"/><path class="g" d="M88 24L91 32L99 34L91 38L88 46L85 38L77 34L85 32Z"/>',
-/*29 pelle contro pelle*/'<path class="f" d="M82 18C52 20 36 52 50 80C60 98 84 102 100 90C74 92 62 60 82 18Z"/><path class="g" d="M92 40L95 47L102 48L96 53L98 60L92 56L86 60L88 53L82 48L89 47Z"/>',
-/*30 missionario*/'<path d="M8 108H112"/><circle class="w" cx="22" cy="92" r="7"/><path class="w" d="M30 96H72L92 78M72 96L100 100"/><circle class="f" cx="34" cy="62" r="7"/><path d="M41 67L76 82L96 62M76 82L108 88M44 70L32 90"/>',
-/*31 cucchiaio*/'<path d="M8 108H112"/><circle class="w" cx="24" cy="84" r="7"/><path class="w" d="M31 89C50 100 70 100 90 92L106 102"/><circle class="f" cx="34" cy="58" r="7"/><path d="M41 63C58 76 78 78 96 70L110 82M50 72L40 88"/>',
-/*32 amazzone*/'<path d="M8 108H112"/><circle class="w" cx="22" cy="94" r="7"/><path class="w" d="M30 98H100"/><circle class="f" cx="62" cy="30" r="7"/><path d="M62 38V68M62 48L46 62M62 48L78 62M62 68L44 90L54 98M62 68L82 90L72 98"/>',
-/*33 pecorina*/'<path d="M8 108H112"/><circle class="w" cx="26" cy="62" r="7"/><path class="w" d="M33 66L76 70M42 68V104M70 72L78 90L66 104"/><circle class="f" cx="92" cy="30" r="7"/><path d="M92 38V70M92 48L74 64M92 70L82 90L90 104M92 70L104 90"/>',
-/*34 loto*/'<path d="M8 108H112"/><circle class="f" cx="44" cy="30" r="7"/><path d="M44 38V76M44 76L24 94M44 76L70 96"/><circle class="w" cx="76" cy="30" r="7"/><path class="w" d="M76 38V74M76 74L96 94M76 74L50 98M46 50L68 54M74 50L52 54"/>',
-/*35 in piedi*/'<path d="M14 10V112"/><circle class="w" cx="34" cy="26" r="7"/><path class="w" d="M34 34V70M34 70L28 108M34 70L48 108M34 48L20 58"/><circle class="f" cx="58" cy="26" r="7"/><path d="M58 34V68M58 68L54 108M58 68L72 108M58 46L38 54"/>',
-/*36 sedia*/'<path d="M20 20V108M20 66H72M72 66V108"/><circle class="w" cx="46" cy="30" r="7"/><path class="w" d="M46 38V66L80 70L84 108"/><circle class="f" cx="64" cy="22" r="7"/><path d="M64 30V60L56 80M64 44L48 50"/>',
-/*37 forbici*/'<path d="M8 108H112"/><circle class="w" cx="16" cy="90" r="7"/><path class="w" d="M23 94H58L100 74M58 94L104 100"/><circle class="f" cx="104" cy="66" r="7"/><path d="M97 70H62L22 86M62 70L16 62"/>',
-/*38 farfalla*/'<path class="g" d="M10 84H70V96H10Z"/><circle class="w" cx="20" cy="74" r="7"/><path class="w" d="M28 78H62L86 56M62 80L88 70"/><circle class="f" cx="90" cy="26" r="7"/><path d="M90 34V70L84 108M90 70L100 108M90 46L70 62"/>',
-/*39 carriola*/'<path d="M8 108H112"/><circle class="w" cx="24" cy="76" r="7"/><path class="w" d="M30 82L70 70M34 84L28 108M44 80L48 108"/><circle class="f" cx="92" cy="30" r="7"/><path d="M92 38V74L84 108M92 74L100 108M92 52L74 66M92 52L76 70"/>');
-const ico=i=>'<svg class="il" viewBox="0 0 120 120" aria-hidden="true">'+(ART[i]||'')+'</svg>';
+// ---- dadi: azione × zona × durata × modo ----
+const D_ACT=[
+{t:'Bacia',l:1},{t:'Accarezza',l:1},{t:'Sfiora con la punta delle dita',l:1},{t:'Massaggia',l:1},
+{t:'Mordicchia piano',l:1},{t:'Soffia piano',l:1,p:1},{t:'Disegna con un dito',l:1,p:1},{t:'Appoggia la guancia',l:1,p:1},
+{t:'Lecca',l:2},{t:'Succhia piano',l:2},{t:'Bacia con la lingua',l:2},{t:'Assaggia',l:2}];
+const D_ZONE=[
+{n:'il collo',p:'sul collo',l:1},{n:"l'orecchio",p:"sull'orecchio",l:1},{n:"l'interno del polso",p:"sull'interno del polso",l:1},
+{n:'la nuca',p:'sulla nuca',l:1},{n:'la schiena',p:'sulla schiena',l:1},{n:'la spalla',p:'sulla spalla',l:1},
+{n:'la pancia',p:'sulla pancia',l:1},{n:'le mani',p:'sulle mani',l:1},{n:"l'interno del braccio",p:"sull'interno del braccio",l:1},
+{n:'le caviglie',p:'sulle caviglie',l:1},{n:'i capelli',p:'sui capelli',l:1},{n:'le labbra',p:'sulle labbra',l:1},
+{n:"l'interno coscia",p:"sull'interno coscia",l:2},{n:'il petto',p:'sul petto',l:2},{n:'i fianchi',p:'sui fianchi',l:2},
+{n:'le natiche',p:'sulle natiche',l:2},{n:"l'inguine",p:"sull'inguine",l:2},{n:'la parte bassa della schiena',p:'sulla parte bassa della schiena',l:2}];
+const D_DUR=[{t:'per 30 secondi',s:30},{t:'per 1 minuto',s:60},{t:'per 1 minuto',s:60},{t:'per 2 minuti',s:120},{t:'per 3 minuti',s:180},{t:"finché l'altro non chiede di cambiare",s:0}];
+const D_MODO=['molto lentamente','a occhi chiusi','senza parlare','a luce spenta','sussurrando','alternando delicato e deciso','guardandovi negli occhi','senza mai staccare le mani'];
+// momenti di «cenere» non sono nei dadi
+
 const FLAME='<path class="g" d="M60 12C64 32 86 44 86 70C86 88 74 104 60 106C46 104 34 88 34 70C34 56 42 50 47 38C52 46 55 50 59 50C59 38 57 26 60 12Z"/><path class="f" d="M60 64C68 74 72 82 66 92C62 96 58 96 54 92C48 84 54 74 60 64Z"/>';
 const LOGO='<svg class="il logo" viewBox="0 0 120 120" aria-hidden="true">'+FLAME+'</svg>';
 const EMB='<svg class="il" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="55"/><circle cx="60" cy="60" r="50" style="stroke-dasharray:1 5"/>'+FLAME+'</svg>';
-// la carta pescata: arriva dal mazzo, poi si gira (il flip parte da wire())
-function tcard(){
- const has=lastI>=0,c=has?CARDS[lastI]:null,cls='tcard'+(has&&!fresh?' open':'')+(has&&fresh?' deal':'')+(has?'':' idle');
- const back='<div class="face back">'+EMB+'<div class="bn">Brace</div></div>';
- const front=has?'<div class="face front"><i class="cn tl">♥</i><i class="cn br">♥</i><div class="ftag">'+(c.k==='a'?'audace 🔥':c.k==='p'?'posizione':'sensuale')+'</div>'+ico(lastI)+'<div class="ctext">'+esc(c.t)+'</div><div class="fk">'+(lastMaybe?'un «forse» in comune':'carta in comune')+'</div></div>':'';
- return '<div class="'+cls+'" id="tc"><div class="tin">'+back+front+'</div></div>'+(has?'':'<p class="note" style="text-align:center">Pesca una carta dal mazzo.</p>')}
-// braci che salgono sullo sfondo
-(()=>{const b=document.getElementById('bg');if(!b||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches))return;
- for(let i=0;i<18;i++){const e=document.createElement('i'),z=2+Math.random()*4;
+
+
+// ---- tensione che sale: sfondo, braci, battito ----
+let heat=0,wantBeat=false;
+const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+function applyHeat(){const b=document.getElementById('bg');document.documentElement.style.setProperty('--heat',heat.toFixed(3));
+ if(b){b.classList.toggle('h1',heat>=.25);b.classList.toggle('h2',heat>=.5);b.classList.toggle('h3',heat>=.75)}
+ beatHeat=heat;if(wantBeat&&!beatTimer)beatLoop()}
+// braci che salgono sullo sfondo (le prime 18 sempre, le altre compaiono quando la tensione sale)
+(()=>{const b=document.getElementById('bg');if(!b||reduced)return;
+ for(let i=0;i<42;i++){const e=document.createElement('i'),z=2+Math.random()*4;
+  if(i>=34)e.className='x3';else if(i>=26)e.className='x2';else if(i>=18)e.className='x1';
   e.style.cssText='--s:'+z+'px;--x:'+(Math.random()*100)+'%;--d:'+(9+Math.random()*10)+'s;--l:-'+(Math.random()*14)+'s;--dx:'+((Math.random()-.5)*120)+'px';b.appendChild(e)}})();
+function pulse(){const g=document.querySelector('#bg .gl');if(g&&g.animate&&!reduced)g.animate([{filter:'brightness(1.8)'},{filter:'brightness(1)'}],{duration:520,easing:'ease-out'})}
 
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
 const $=document.getElementById('app');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
 let pid=store.get('brace-pid');if(!pid){pid=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c=='x'?r:(r&3|8)).toString(16)}));store.set('brace-pid',pid)}
-let tab='m',code=store.get('brace-code'),hm=null,st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,lastI=-1,lastMaybe=false,fresh=false,fx=false,err='',busy=false,sig='',timer=null;
+let tab='m',code=store.get('brace-code'),hm=null,st=null,shared=null,qi=0,tmp={s:[],f:[]},skip=0,lastI=-1,lastMaybe=false,fresh=false,fx=false,err='',busy=false,sig='',timer=null,lastTs='',diceFx=false;
 // carte già pescate su questo telefono (restano memorizzate anche se ricarichi la pagina)
-let drawn={s:[],f:[],last:''};
+const DR0=()=>({s:[],f:[],z:[],last:'',ph:0,dn:0,md:'c'});
+let drawn=DR0();
 const dkey=c=>'brace-drawn-'+c;
+
+// ---- finestre di conferma nello stile del gioco (al posto di confirm()) ----
+function ask(o){return new Promise(res=>{
+ const prev=document.activeElement,d=document.createElement('div');d.className='ov';
+ d.innerHTML=`<div class="dlg${o.danger?' danger':''}" role="alertdialog" aria-modal="true" aria-labelledby="dgt"><div class="tag">${esc(o.tag||'')}</div><h3 id="dgt">${esc(o.title)}</h3><p>${esc(o.text||'')}</p><button id="dgok">${esc(o.ok||'Conferma')}</button><button class="alt" id="dgno">${esc(o.no||'Annulla')}</button></div>`;
+ const kd=e=>{if(e.key==='Escape'){e.preventDefault();done(false)}};
+ const done=v=>{document.removeEventListener('keydown',kd,true);d.remove();try{prev&&prev.focus&&prev.focus()}catch(e){}res(v)};
+ d.addEventListener('click',e=>{if(e.target===d)done(false)});
+ d.querySelector('#dgok').onclick=()=>done(true);d.querySelector('#dgno').onclick=()=>done(false);
+ document.addEventListener('keydown',kd,true);document.body.appendChild(d);d.querySelector('#dgno').focus()})}
+
+// ---- audio: battito del cuore (WebAudio, nessun file) e campanella del timer ----
+let aC=null,aWait=false,beatTimer=null,beatHeat=0;
+const beatMuted=()=>store.get('brace-beat')==='0';
+function actx(){if(aC)return aC;const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;try{aC=new A()}catch(e){aC=null}return aC}
+// i browser bloccano l'audio senza un tocco: sblocca al primo tocco
+function aArm(){if(aWait)return;aWait=true;
+ const go=()=>{['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev,go,true));aWait=false;const c=actx();if(c&&c.state==='suspended')c.resume().catch(()=>{});if(wantBeat)beatLoop()};
+ ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,go,true))}
+function thump(t,f,g){const c=aC,o=c.createOscillator(),o2=c.createOscillator(),gn=c.createGain(),g2=c.createGain(),lp=c.createBiquadFilter();
+ o.type='sine';o2.type='triangle';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.5,t+.18);o2.frequency.setValueAtTime(f*2,t);o2.frequency.exponentialRampToValueAtTime(f,t+.12);
+ lp.type='lowpass';lp.frequency.value=340;gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(g,t+.02);gn.gain.exponentialRampToValueAtTime(.0001,t+.27);
+ g2.gain.value=.4;o.connect(gn);o2.connect(g2);g2.connect(gn);gn.connect(lp);lp.connect(c.destination);o.start(t);o2.start(t);o.stop(t+.3);o2.stop(t+.3)}
+// lub-dub: il ritmo e il volume salgono con la tensione (sotto il 20% resta in silenzio)
+function beatLoop(){clearTimeout(beatTimer);beatTimer=null;
+ if(!wantBeat||beatMuted())return;
+ const c=actx();if(!c)return;
+ if(c.state!=='running'){c.resume&&c.resume().catch(()=>{});aArm();return}
+ const h=beatHeat;let gap=60/(52+h*64);
+ if(h>=.2&&!document.hidden){const g=.05+h*.3,t=c.currentTime+.02;thump(t,78,g);thump(t+.21,62,g*.7);pulse()}
+ beatTimer=setTimeout(beatLoop,gap*1000)}
+function beatStop(){clearTimeout(beatTimer);beatTimer=null}
+function beatToggle(){if(beatMuted()){store.del('brace-beat');actx();beatLoop()}else{store.set('brace-beat','0');beatStop()}draw()}
+function chime(){const c=actx();if(!c||c.state!=='running')return;
+ [[660,0],[880,.22],[1100,.46]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+d;o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.12,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+.7);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.75)})}
+const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
 
 // ---- musica di sottofondo (parte con la tensione condivisa) ----
 const FIN=/^finale/i; // i brani il cui nome inizia con "finale" suonano solo nella schermata finale
 const MP3_BASE='https://apenno75.github.io/Brace/MP3/';
 const MP3_API='https://api.github.com/repos/apenno75/Brace/contents/MP3';
 let conf={given:[],got:[]},confOk=false;
-const APP_V=14;
+const APP_V=15;
 // se sul telefono c'è una versione vecchia in cache, scarica quella nuova e ricarica (una volta per sessione)
 (async()=>{try{const r=await fetch(location.href.split('#')[0].split('?')[0],{cache:'no-store'});const t=await r.text();const m=t.match(/const APP_V=(\d+)/);
  if(m&&+m[1]>APP_V&&!sessionStorage.getItem('brace-rl')){sessionStorage.setItem('brace-rl','1');if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}location.reload()}}catch(e){}})();
@@ -257,12 +542,13 @@ function musicToggle(){
  if(mMuted()){store.del('brace-mute');if(mAudio&&mAudio.src)mAudio.play().catch(()=>mNext());else mNext()}
  else{store.set('brace-mute','1');if(mAudio)mAudio.pause()}
  draw()}
-function loadDrawn(c){try{const d=JSON.parse(store.get(dkey(c))||'null');drawn=d&&d.s&&d.f?d:{s:[],f:[],last:''}}catch(e){drawn={s:[],f:[],last:''}}
+function loadDrawn(c){let d=null;try{d=JSON.parse(store.get(dkey(c))||'null')}catch(e){}
+ drawn=d&&d.s&&d.f?Object.assign(DR0(),d):DR0();if(!Array.isArray(drawn.z))drawn.z=[];
  const L=drawn.last||'';lastMaybe=!!drawn.lm;
  if(typeof drawn.li==='number')lastI=drawn.li;
  else{lastMaybe=/^Forse in comune: /.test(L);const t=L.replace(/^Forse in comune: /,'');lastI=CARDS.findIndex(x=>x.t===t)}
  fresh=false}
-function saveDrawn(){drawn.li=lastI;drawn.lm=lastMaybe;drawn.last=lastI>=0?CARDS[lastI].t:'';store.set(dkey(code),JSON.stringify(drawn))}
+function saveDrawn(){drawn.li=lastI;drawn.lm=lastMaybe;drawn.last=lastI>=0?(CARDS[lastI].t||''):'';store.set(dkey(code),JSON.stringify(drawn))}
 if(code)loadDrawn(code);
 
 async function rpc(fn,args){const{data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
@@ -275,13 +561,32 @@ async function enablePush(){
  await rpc('brace_save_push',{p_code:code,p_player:pid,p_sub:sub.toJSON()});store.set('brace-push',code);err='';draw()}
 const fail=e=>{err='Errore: '+(e.message||e);busy=false;draw()};
 let cfg=null,fm=null,endMode=!!code&&store.get('brace-end-'+code)==='1',vpick=[],fav={me:false,partner:false,match:null};
+
+// ---- ruoli «dare / ricevere» ----
+// chi ha il nome che viene prima in ordine alfabetico è «A»; l'altro è «B». Ognuno calcola lo stesso ordine sul proprio telefono.
+const nm=s=>String(s||'').trim().toLowerCase();
+const rolesOk=()=>!!(st&&st.partner&&nm(st.me.name)!==nm(st.partner.name));
+const iAmLo=()=>nm(st.me.name)<nm(st.partner.name);
+const isRole=i=>rolesOk()&&!!CARDS[i]&&CARDS[i].g!==undefined&&CARDS[i].v===undefined;
+const iGive=i=>{const c=CARDS[i];return !!c&&c.v!==undefined&&rolesOk()&&(c.d==='A')===iAmLo()};
+function ctext(i){const c=CARDS[i];if(!c)return'';if(c.v===undefined)return c.t;const b=CARDS[c.v];if(!rolesOk())return b.t;
+ return(iGive(i)?b.g:b.r).replace(/\{P\}/g,st.partner.name)}
+function leaderName(n){if(!rolesOk())return'';const lo=iAmLo()?st.me.name:st.partner.name,hi=iAmLo()?st.partner.name:st.me.name;return n%2===1?lo:hi}
+const otherName=n=>!rolesOk()?'':(nm(n)===nm(st.me.name)?st.partner.name:st.me.name);
+
+// ---- ordine delle carte uguale sui due telefoni (mescolamento deterministico dal codice stanza) ----
+const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
+const rng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+function order(list,salt){const a=list.slice().sort((x,y)=>x-y),r=rng(hash(code+'|'+salt));for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+
 // mazzo della stanza (18 carte scelte alla creazione); le stanze vecchie usano il mazzo di prima
 const deck=()=>st.deck&&st.deck.length?st.deck:CARDS.map((c,i)=>i).filter(i=>i<24&&CARDS[i].l<=st.lvl);
 const missions=()=>st.mis&&st.mis.length?st.mis.map(x=>({t:MISS[x.m].t,o:x.o/60})):MISS.filter((m,i)=>i<8&&m.l<=st.lvl);
-// 18 carte: 1 tipo = 18, 2 tipi = 9+9, 3 tipi = 6+6+6
+// 18 carte: 1 tipo = 18, 2 tipi = 9+9, 3 tipi = 6+6+6 (solo carte base: le carte virtuali dei ruoli e la «cenere» ne restano fuori)
 function buildDeck(lv,ps,fv){
  const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
- const by=k=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].k===k);
+ const by=k=>CARDS.map((c,i)=>i).filter(i=>CARDS[i].k===k&&CARDS[i].v===undefined);
  const ks=['s'].concat(lv?['a']:[],ps?['p']:[]),q=18/ks.length;
  const fa=fv?favs():[],pk=k=>{const a=by(k),f=sh(a.filter(i=>fa.includes(i))).slice(0,Math.ceil(q/2));return f.concat(sh(a.filter(i=>!f.includes(i)))).slice(0,q)};
  return sh([].concat(...ks.map(pk)))}
@@ -298,7 +603,7 @@ function fmHtml(){const f=F();return `<label>Ora della serata</label>${tsel('hr'
 <label class="chk"><input type="checkbox" id="ps" ${f.ps?'checked':''}> Modalità Posizioni (aggiunge carte con il disegno delle posizioni del kamasutra, dalle classiche alle più particolari)</label>
 ${favs().length?`<label class="chk"><input type="checkbox" id="fv" ${f.fv?'checked':''}> ⭐ Includi le vostre carte preferite delle serate precedenti (${favs().length})</label>`:''}
 <label>Quante missioni durante la giornata</label><select id="mn">${[2,3,4,5,6].map(v=>`<option${v===f.n?' selected':''}>${v}</option>`).join('')}</select>
-${f.times.map((t,k)=>`<label>Missione ${k+1}: si attiva alle</label>${tsel(k,t)}<select class="ms" data-k="${k}">${mpool(f.lv).map(i=>`<option value="${i}"${f.picks[k]===i?' selected':''}>${esc(MISS[i].t.replace(/\{P\}/g,'lui/lei'))}</option>`).join('')}</select>`).join('')}`}
+${f.times.map((t,k)=>`<label>Missione ${k+1}: si attiva alle</label>${tsel(k,t)}<select class="ms" data-k="${k}">${mpool(f.lv).map(i=>`<option value="${i}"${f.picks[k]===i?' selected':''}>${esc(MISS[i].t.replace(/\{P\}/g,'[partner]'))}</option>`).join('')}</select>`).join('')}`}
 // pulsante per cancellare la stanza (per entrambi i giocatori)
 const cxBtn='<button class="alt" id="cx">Annulla stanza</button>';
 
@@ -319,13 +624,34 @@ async function join(name,c,tk){
  if(r==='full'){err='Stanza al completo: ci sono già due giocatori';busy=false;return draw()}
  if(r!=='ok'){err='Risposta inattesa dal server';busy=false;return draw()}
  enter(c)}
-function enter(c){cfg=null;fm=null;endMode=store.get('brace-end-'+c)==='1';vpick=[];fav={me:false,partner:false,match:null};tab='m';conf={given:[],got:[]};confOk=false;hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
-function leave(){cfg=null;endMode=false;musicStop();conf={given:[],got:[]};confOk=false;hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
+function enter(c){cfg=null;fm=null;endMode=store.get('brace-end-'+c)==='1';vpick=[];fav={me:false,partner:false,match:null};tab='m';conf={given:[],got:[]};confOk=false;cust=[];custOk=null;cmText='';cmTime='';cmMsg='';tm=null;hm=null;code=c;store.set('brace-code',c);err='';busy=false;st=null;shared=null;qi=0;tmp={s:[],f:[]};loadDrawn(c);poll();startTimer()}
+function leave(){cfg=null;endMode=false;musicStop();beatStop();tm=null;conf={given:[],got:[]};confOk=false;cust=[];custOk=null;hm=null;clearInterval(timer);store.del('brace-code');code=null;st=null;shared=null;err='';sig='';draw()}
+async function wipeCustom(){if(custOk===true){try{await rpc('brace_custom_wipe',{p_code:code,p_player:pid})}catch(e){}}}
 async function cancelRoom(){
- if(!confirm("Annullare la stanza? Verrà cancellata anche per l'altro giocatore."))return;
- try{await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
+ if(!await ask({tag:'annulla stanza',title:'Annullare la stanza?',text:"Verrà cancellata anche per l'altro giocatore.",ok:'Sì, annulla',no:'No, resta'}))return;
+ try{await wipeCustom();await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
  store.del(dkey(code));leave()}
 function startTimer(){clearInterval(timer);timer=setInterval(poll,3000)}
+
+// ---- missioni personalizzate: ognuno scrive in segreto una missione per l'altro (serve brace_custom.sql sul database) ----
+let cust=[],custOk=null,cmText='',cmTime='',cmMsg='',cmBusy=false;
+async function custLoad(){
+ if(custOk===false)return;
+ try{const r=await rpc('brace_custom_list',{p_code:code,p_player:pid});cust=Array.isArray(r)?r:[];custOk=true}
+ catch(e){if(/PGRST202|could not find|does not exist|not find the function/i.test((e.code||'')+' '+(e.message||'')))custOk=false}}
+const defCmTime=()=>hmm(Math.max(0,Math.round((toM(new Date(st.ev).toTimeString().slice(0,5))-90)/15)*15));
+async function custAdd(){
+ const text=cmText.trim();if(!text){cmMsg='Scrivi prima la missione.';return draw()}
+ const d=new Date(st.ev),[h,m]=(cmTime||defCmTime()).split(':');d.setHours(+h,+m,0,0);
+ if(d.getTime()>=st.ev){cmMsg="Scegli un'ora prima della serata.";return draw()}
+ const at=Math.max(d.getTime(),Date.now()+20000);cmBusy=true;cmMsg='';draw();
+ try{const r=await rpc('brace_custom_add',{p_code:code,p_player:pid,p_at:at,p_text:text});
+  if(r==='ok'){cmText='';cmMsg='Inviata in segreto ✓'}else if(r==='limit')cmMsg='Ne hai già scritte 3: bastano.';else cmMsg='Non sono riuscito a inviarla.'}
+ catch(e){cmMsg='Errore: '+(e.message||e)}
+ cmBusy=false;await custLoad();draw()}
+function custAct(id,act){cust=cust.map(c=>c.id===id?Object.assign({},c,act==='done'?{done:true}:{conf:true}):c);draw();
+ rpc('brace_custom_act',{p_code:code,p_player:pid,p_id:id,p_act:act}).then(custLoad).then(draw).catch(fail)}
+
 async function poll(){
  if(!code)return;
  try{
@@ -334,108 +660,232 @@ async function poll(){
   if(!cfg){try{cfg=await rpc('brace_room_config',{p_code:code,p_player:pid})}catch(e){}}
   {const g=cfg||{};s.pos=g.pos;s.mis=g.mis;s.deck=g.deck}
   if(s.partner&&s.me.fin&&s.partner.fin&&!shared)shared=await rpc('brace_get_shared',{p_code:code,p_player:pid});
-  if(s.partner&&s.me.fin&&s.partner.fin){try{const c=await rpc('brace_get_confirms',{p_code:code,p_player:pid});conf={given:(c&&c.given)||[],got:(c&&c.got)||[]};confOk=true}catch(e){confOk=false}}
+  if(s.partner&&s.me.fin&&s.partner.fin){try{const c=await rpc('brace_get_confirms',{p_code:code,p_player:pid});conf={given:(c&&c.given)||[],got:(c&&c.got)||[]};confOk=true}catch(e){confOk=false}
+   await custLoad()}
   if(endMode&&s.partner){try{fav=(await rpc('brace_get_fav',{p_code:code,p_player:pid}))||fav;if(fav.match&&fav.match.length)addFavs(fav.match)}catch(e){}}
-  const ns=JSON.stringify([s,shared&&1,conf,confOk,fav,endMode]);
+  const ns=JSON.stringify([s,shared&&1,conf,confOk,fav,endMode,cust,custOk]);
   st=s;if(ns!==sig||err){sig=ns;err='';draw()}
  }catch(e){err='Connessione instabile…';draw()}}
 
 // ---- finale della serata ----
 const favs=()=>{try{return JSON.parse(store.get('brace-favs')||'[]')}catch(e){return[]}};
-const addFavs=a=>{const f=favs();a.forEach(i=>{if(!f.includes(i))f.push(i)});store.set('brace-favs',JSON.stringify(f))};
-function endGame(){endMode=true;store.set('brace-end-'+code,'1');vpick=[];musicFinale();draw();window.scrollTo(0,0)}
+const addFavs=a=>{const f=favs();a.map(baseOf).forEach(i=>{if(!f.includes(i))f.push(i)});store.set('brace-favs',JSON.stringify(f))};
+function endGame(){endMode=true;store.set('brace-end-'+code,'1');vpick=[];tm=null;beatStop();musicFinale();draw();window.scrollTo(0,0)}
 // brano finale: un mp3 il cui nome inizia con "finale"; se non c'è, la musica si ferma
 function musicFinale(){mLoad().then(t=>{const f=t.find(n=>FIN.test(n));
  if(f&&!mMuted()){const a=mAudio||(mAudio=new Audio());mOn=false;a.onended=null;a.loop=true;a.volume=.5;a.src=MP3_BASE+encodeURIComponent(f);a.play().catch(()=>{})}else musicStop()}).catch(musicStop)}
 function sendFav(a){fav={...fav,me:true};draw();rpc('brace_submit_fav',{p_code:code,p_player:pid,p_fav:a}).then(poll).catch(fail)}
 async function closeNight(){
- if(!confirm("Chiudere la serata? La stanza verrà cancellata per entrambi."))return;
- if(!confirm("ULTIMA CONFERMA: risposte, missioni e voti verranno eliminati dal server, per te e per "+st.partner.name+". Non si può annullare. Vuoi davvero cancellare tutto?"))return;
- try{await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
+ if(!await ask({tag:'chiudere la serata',title:'Chiudere la serata?',text:'La stanza verrà cancellata per entrambi.',ok:'Sì, continua',no:'Non ancora'}))return;
+ if(!await ask({tag:'ultima conferma',title:'Cancellare tutto?',text:'Risposte, missioni e voti verranno eliminati dal server, per te e per '+st.partner.name+'. Non si può annullare.',ok:'Cancella tutto',no:'Fermati',danger:true}))return;
+ try{await wipeCustom();await rpc('brace_cancel_room',{p_code:code,p_player:pid})}catch(e){return fail(e)}
  store.del(dkey(code));store.del('brace-end-'+code);leave()}
 function finale(){
+ heat=.12;
  const P=st.partner.name,pool=shared?shared.s.concat(shared.f):[];
  const hd=`<div style="text-align:center" class="dim">${LOGO}<div class="tag">la serata è finita</div><h2>Grazie, ${esc(st.me.name)} e ${esc(P)}</h2><p>La brace si abbassa, ma resta accesa.</p></div>`;
  let v='';
  if(!pool.length)v='';
- else if(!fav.me)v=`<div class="card"><div class="tag">votazione segreta</div><p>Scegli fino a 3 carte che rifaresti. Nessuno vedrà le tue scelte: comparirà solo ciò che coincide.</p>${pool.map(i=>`<label class="chk m mini" style="color:var(--ink)"><input type="checkbox" data-v="${i}"${vpick.includes(i)?' checked':''}>${ico(i)}<span>${esc(CARDS[i].t)}</span></label>`).join('')}<button id="vs" ${vpick.length?'':'disabled'}>Invia in segreto (${vpick.length}/3)</button><button class="alt" id="vn">Preferisco non votare</button></div>`;
+ else if(!fav.me)v=`<div class="card"><div class="tag">votazione segreta</div><p>Scegli fino a 3 carte che rifaresti. Nessuno vedrà le tue scelte: comparirà solo ciò che coincide.</p>${pool.map(i=>`<label class="chk m mini" style="color:var(--ink)"><input type="checkbox" data-v="${i}"${vpick.includes(i)?' checked':''}>${ico(i)}<span>${esc(ctext(i))}</span></label>`).join('')}<button id="vs" ${vpick.length?'':'disabled'}>Invia in segreto (${vpick.length}/3)</button><button class="alt" id="vn">Preferisco non votare</button></div>`;
  else if(!fav.partner)v=`<div class="card"><div class="tag">voto inviato</div><p>Aspettiamo il voto di ${esc(P)}: le coincidenze compariranno qui.</p></div>`;
- else{const m=fav.match||[];v=`<div class="card"><div class="tag">le vostre coincidenze</div>${m.length?m.map(i=>`<div class="m mini">${ico(i)}<span>${esc(CARDS[i].t)}</span></div>`).join('')+'<p class="note">⭐ Salvate: alla prossima stanza potrete includerle nel mazzo.</p>':'<p>Nessuna coincidenza stavolta: è un buon motivo per parlarne con calma, a voce.</p>'}</div>`}
+ else{const m=fav.match||[];v=`<div class="card"><div class="tag">le vostre coincidenze</div>${m.length?m.map(i=>`<div class="m mini">${ico(i)}<span>${esc(ctext(i))}</span></div>`).join('')+'<p class="note">⭐ Salvate: alla prossima stanza potrete includerle nel mazzo.</p>':'<p>Nessuna coincidenza stavolta: è un buon motivo per parlarne con calma, a voce.</p>'}</div>`}
  return hd+v+`<div class="card"><div class="tag">chiudere la serata</div><p class="note">Cancella dal server la stanza, le risposte, le missioni e i voti, per entrambi. Prima guardate le coincidenze.</p><button id="xe">Chiudi la serata e cancella la stanza</button><button class="alt" id="xb">Torna al gioco</button><button class="alt" id="lv2">Esci senza cancellare</button></div><p class="note err">${esc(err)}</p>`}
 
-function draw(){$.innerHTML=view();wire()}
+// ---- dati del momento (tensione, missioni sbloccate...) ----
+function tinfo(){
+ const now=Date.now()+skip,ms=missions(),ev=st.ev,mine=st.me.done,theirs=st.partner.done;
+ const un=ms.map(m=>ev-m.o*36e5<=now);
+ const t0=ev-ms[0].o*36e5,tp=Math.max(0,Math.min(1,(now-t0)/(ev-t0)));
+ const cT=custOk===true?cust.length:0,cD=custOk===true?cust.filter(c=>c.done).length:0;
+ const tension=Math.round((tp*.5+(mine.length+theirs.length+cD)/(ms.length*2+cT)*.5)*100);
+ return{now,ms,ev,mine,theirs,un,tension,open:now>=ev}}
+
+// ---- fasi della serata: Preludio → Brace → Fuoco → Cenere ----
+const phs=()=>PHASES.filter(p=>p.k==='s'||p.k==='z'||(p.k==='a'&&st.lvl===2)||(p.k==='p'&&st.pos));
+const curPh=()=>{const a=phs();return a[Math.max(0,Math.min(drawn.ph||0,a.length-1))]};
+const plist=(k,w)=>k==='z'?CARDS.map((c,i)=>i).filter(i=>CARDS[i].k==='z'):((shared&&shared[w])||[]).filter(i=>kindOf(i)===k);
+function counts(k){
+ if(k==='z'){const t=plist('z').length;return{ts:t,ds:drawn.z.length,tf:0,df:0}}
+ const S=plist(k,'s'),Fm=plist(k,'f');
+ return{ts:S.length,ds:S.filter(i=>drawn.s.includes(i)).length,tf:Fm.length,df:Fm.filter(i=>drawn.f.includes(i)).length}}
+const turnN=()=>drawn.s.length+drawn.f.length+drawn.z.length+(drawn.dn||0);
+function pickNext(w){
+ const k=curPh().k;let L,D;
+ if(k==='z'){L=order(plist('z'),'z');D=drawn.z}else{L=order(plist(k,w),k+w);D=drawn[w]}
+ const r=L.filter(i=>!D.includes(i));if(!r.length)return;
+ const i=r[0];D.push(i);lastI=i;lastMaybe=(w==='f'&&k!=='z');fresh=true;tm=null;saveDrawn();buzz([40,70,40]);draw()}
+function nextPhase(){const n=phs().length;drawn.ph=Math.min((drawn.ph||0)+1,n-1);drawn.md='c';lastI=-1;lastMaybe=false;fresh=false;tm=null;saveDrawn();draw();window.scrollTo(0,0)}
+
+// ---- timer di una carta / di un lancio di dadi ----
+let tm=null,tmI=null;
+const fmtT=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function tmStart(s){actx();tm={end:Date.now()+s*1000,total:s*1000};clearInterval(tmI);tmI=setInterval(tmTick,250);draw()}
+function tmStop(){tm=null;clearInterval(tmI);draw()}
+function tmTick(){if(!tm){clearInterval(tmI);return}const left=tm.end-Date.now();
+ if(left<=0){tm=null;clearInterval(tmI);chime();buzz([200,100,200]);draw();return}
+ const v=document.getElementById('tmv'),b=document.getElementById('tmb');if(v)v.textContent=fmtT(left);if(b)b.style.width=(100*left/tm.total)+'%'}
+const tmBlock=()=>tm?`<div class="tmr"><div class="tv" id="tmv">${fmtT(tm.end-Date.now())}</div><div class="bar"><i id="tmb" style="width:${Math.max(0,100*(tm.end-Date.now())/tm.total)}%;transition:none"></i></div><button class="alt sm" id="tmx">Ferma il timer</button></div>`:'';
+
+// ---- dadi: stesso lancio su entrambi i telefoni (i risultati nascono dal codice stanza e dal numero del lancio) ----
+function diceAt(n){
+ const r=rng(hash(code+'|dice|'+n)),hi=st.lvl===2&&curPh().k!=='s';
+ const A=D_ACT.filter(x=>x.l<=(hi?2:1)),Z=D_ZONE.filter(x=>x.l<=(hi?2:1));
+ const pick=a=>a[Math.floor(r()*a.length)];
+ return{a:pick(A),z:pick(Z),d:pick(D_DUR),m:pick(D_MODO)}}
+function diceText(n){const D=diceAt(n),ld=leaderName(n),rc=ld?otherName(ld):'',who=rc?'di '+rc:"dell'altro";
+ return D.a.t+' '+(D.a.p?D.z.p:D.z.n)+' '+who+', '+D.m+', '+D.d.t+'.'}
+function rollDice(){drawn.dn=(drawn.dn||0)+1;diceFx=true;tm=null;saveDrawn();buzz(30);draw()}
+function animDice(){
+ const n=drawn.dn,Fn=diceAt(n),q=id=>document.getElementById(id);
+ const opts=[D_ACT.map(x=>x.t),D_ZONE.map(x=>x.n),D_DUR.map(x=>x.t),D_MODO],fin=[Fn.a.t,Fn.z.n,Fn.d.t,Fn.m];
+ [0,1,2,3].forEach(j=>{
+  const iv=setInterval(()=>{const e=q('dv'+j);if(e)e.textContent=opts[j][Math.floor(Math.random()*opts[j].length)]},70);
+  setTimeout(()=>{clearInterval(iv);const e=q('dv'+j);if(e)e.textContent=fin[j];const d=q('dd'+j);if(d)d.classList.remove('roll');
+   if(j===3){const r=q('dr');if(r)r.classList.remove('pend');buzz([20,40,20])}},650+j*280)})}
+
+
+// la carta pescata: arriva dal mazzo, poi si gira (il flip parte da wire()); il foil scivola con il dito
+function tcard(){
+ const has=lastI>=0,cls='tcard'+(has&&!fresh?' open':'')+(has&&fresh?' deal':'')+(has?'':' idle');
+ const back='<div class="face back">'+EMB+'<div class="bn">Brace</div></div>';
+ let front='';
+ if(has){const kd=kindOf(lastI),tg=kd==='a'?'audace 🔥':kd==='p'?'posizione':kd==='z'?'cenere':'sensuale',tx=ctext(lastI),L=tx.length;
+  let fk=lastMaybe?'un «dipende da te» in comune':'carta in comune';
+  if(CARDS[lastI].v!==undefined&&rolesOk())fk=iGive(lastI)?'tu fai':'tu ricevi';
+  front='<div class="face front"><i class="cn tl">♥</i><i class="cn br">♥</i><div class="ftag">'+tg+'</div>'+ico(lastI)+'<div class="ctext'+(L>100?' xs':L>62?' sm':'')+'">'+esc(tx)+'</div><div class="fk">'+fk+'</div><div class="foil"></div></div>'}
+ return '<div class="'+cls+'" id="tc"><div class="tin">'+back+front+'</div></div>'+(has?'':'<p class="note" style="text-align:center">Pesca una carta dal mazzo.</p>')}
+
+function draw(){
+ const y=window.scrollY,ae=document.activeElement;let fid=null,s0=null,s1=null;
+ if(ae&&ae.id&&$.contains(ae)){fid=ae.id;try{s0=ae.selectionStart;s1=ae.selectionEnd}catch(e){}}
+ $.innerHTML=view();wire();applyHeat();
+ if(fid){const e=document.getElementById(fid);if(e){try{e.focus({preventScroll:true});if(s0!=null)e.setSelectionRange(s0,s1)}catch(_){}}}
+ if(Math.abs(window.scrollY-y)>2)window.scrollTo(0,y)}
+
 function view(){
+ wantBeat=false;heat=0;
  if(!code){
- const intro=`${LOGO}<div class="tag">per due, consensuali, su due telefoni</div><h1>Brace</h1>
+  const intro=`${LOGO}<div class="tag">per due, consensuali, su due telefoni</div><h1>Brace</h1>
 <p>Ognuno risponde in segreto sul proprio telefono. Vedrete solo ciò che coincide. Poi la giornata scalda piano, fino alla serata.</p>`;
- const name=`<label>Il tuo nome</label><input type="text" id="nm" maxlength="20" value="${esc(store.get('brace-name')||'')}">`;
- const e=`<p class="note err">${esc(err)}</p>`;
- if(hm==='new')return intro+`<div class="card">${name}
+  const name=`<label>Il tuo nome</label><input type="text" id="nm" maxlength="20" value="${esc(store.get('brace-name')||'')}">`;
+  const e=`<p class="note err">${esc(err)}</p>`;
+  if(hm==='new')return intro+`<div class="card">${name}
 ${fmHtml()}
 <p class="note">Ogni giocatore vedrà 18 carte: mazzi diversi si dividono in parti uguali. Solo chi crea la stanza sceglie ora, modalità e missioni; l'altro le vedrà ma non potrà cambiarle.</p>
 <button id="mk" ${busy?'disabled':''}>Crea la stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
- if(hm==='join')return intro+`<div class="card">${name}
+  if(hm==='join')return intro+`<div class="card">${name}
 <label>Codice della stanza</label><input type="text" id="cd" maxlength="4" placeholder="ABCD" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
 <label class="chk"><input type="checkbox" id="tk"> Ero già in questa stanza e sto cambiando dispositivo (riprendo la mia partita: l'altro dispositivo verrà escluso)</label>
 <p class="note">Ora della serata e modalità le ha scelte chi ha creato la stanza.</p>
 <button id="jn" ${busy?'disabled':''}>Entra nella stanza</button><button class="alt" id="bk">Indietro</button></div>`+e;
- return intro+`<div class="card"><button id="gn">Creo una stanza</button><button class="alt" id="gj">Ho un codice</button></div>`+e}
+  return intro+`<div class="card"><button id="gn">Creo una stanza</button><button class="alt" id="gj">Ho un codice</button></div>`+e}
  if(!st)return `<p>Carico la stanza ${esc(code)}…</p><p class="note err">${esc(err)}</p>${cxBtn}<button class="alt" id="lv2">Esci</button>`;
  if(!st.partner)return `<div class="tag">stanza creata</div><h2>Manda questo codice al tuo partner</h2><div class="code">${esc(code)}</div>
 <p>Deve aprire questa stessa pagina e inserire il codice.</p>${cxBtn}<button class="alt" id="lv2">Esci</button><p class="note err">${esc(err)}</p>`;
  const d=deck();
  if(!st.me.fin){if(qi>=d.length)return `<p>Salvo le risposte…</p>`;const fxc=fx?' rise':'';fx=false;
-  return `<div class="note">Serata alle ${new Date(st.ev).toTimeString().slice(0,5)} · modalità audace ${st.lvl===2?'attiva':'non attiva'} · posizioni ${st.pos?'attive':'non attive'} (decise da chi ha creato la stanza)</div><div class="note">${qi+1} / ${d.length}</div><div class="card qc${fxc}">${ico(d[qi])}<div class="qt">${esc(CARDS[d[qi]].t)}</div></div>
-<button data-a="s">Sì</button><button class="alt" data-a="f">Forse</button><button class="alt" data-a="m">Mai</button>
-<p class="note">Il tuo «mai» non viene mostrato a nessuno, nemmeno al server dopo il confronto.</p>${cxBtn}<p class="note err">${esc(err)}</p>`}
+  const i=d[qi],role=isRole(i);
+  const btns=role?`<div class="row3"><button data-a="g">Voglio farlo</button><button data-a="r">Voglio riceverlo</button><button data-a="b">Entrambi</button></div><button class="alt" data-a="f">Dipende da te</button><button class="alt" data-a="m">Non fa per me</button>`
+   :`<button data-a="s">Mi accende</button><button class="alt" data-a="f">Dipende da te</button><button class="alt" data-a="m">Non fa per me</button>`;
+  return `<div class="note">Serata alle ${new Date(st.ev).toTimeString().slice(0,5)} · modalità audace ${st.lvl===2?'attiva':'non attiva'} · posizioni ${st.pos?'attive':'non attive'} (decise da chi ha creato la stanza)</div><div class="note">${qi+1} / ${d.length}</div><div class="card qc${fxc}">${ico(i)}<div class="qt">${esc(CARDS[i].t)}</div>${role?'<div class="note">Chi lo fa e chi lo riceve? Scegli la tua parte.</div>':''}</div>
+${btns}
+<p class="note">Il tuo «non fa per me» non viene mostrato a nessuno, nemmeno al server dopo il confronto.</p>${cxBtn}<p class="note err">${esc(err)}</p>`}
  if(!st.partner.fin)return `<div class="tag">risposte inviate</div><h2>Aspettiamo ${esc(st.partner.name)}</h2><p>Quando avrà finito, il mazzo comparirà qui in automatico.</p>${cxBtn}<button class="alt" id="lv2">Esci</button><p class="note err">${esc(err)}</p>`;
  if(endMode)return finale();
  return play()}
+
+// missioni personalizzate (compaiono solo se il database ha le funzioni brace_custom_*)
+function custHtml(P){
+ if(custOk!==true)return{sM:'',sC:'',pend:0};
+ const hh=at=>new Date(at).toTimeString().slice(0,5),mineC=cust.filter(c=>c.mine),forMe=cust.filter(c=>!c.mine);
+ let a=`<div class="card"><div class="tag">sorprese di ${esc(P)}</div>`;
+ if(!forMe.length)a+=`<div class="m lock">Nessuna sorpresa per ora. Chissà.</div>`;
+ forMe.forEach(c=>{
+  if(!c.text)a+=`<div class="m lock">🔒 Una sorpresa di ${esc(P)} si sblocca alle ${hh(c.at)}</div>`;
+  else a+=`<div class="m"><span>${c.conf?'✓✓ ':c.done?'✓ ':''}${esc(c.text)}${c.done&&!c.conf?`<br><small class="note">⏳ In attesa della conferma di ${esc(P)}</small>`:''}${c.conf?`<br><small class="note">Confermata da ${esc(P)}</small>`:''}</span>${c.done?'':`<button class="sm" data-cd="${c.id}">Fatto</button>`}</div>`});
+ a+=`</div><div class="card"><div class="tag">una missione segreta per ${esc(P)}</div><p class="note">Scrivila tu: ${esc(P)} la vedrà solo all'ora che scegli (massimo 3).</p>
+<textarea class="tx" id="cmt" maxlength="160" placeholder="Es.: Stasera, appena arrivo, voglio che mi guardi negli occhi per un minuto." ${mineC.length>=3?'disabled':''}>${esc(cmText)}</textarea>
+<label>Si sblocca alle</label>${tsel('cm',cmTime||defCmTime())}
+<button id="cms" ${cmBusy||mineC.length>=3?'disabled':''}>Invia in segreto</button>${cmMsg?`<p class="note">${esc(cmMsg)}</p>`:''}`;
+ mineC.forEach(c=>{a+=`<div class="m"><span>${c.conf?'✓✓ ':c.done?'✓ ':'🔒 '}${esc(c.text||'')}<br><small class="note">${c.conf?'Confermata':c.done?esc(P)+' dice di averla fatta: confermala dalla scheda Conferme':'Si sblocca alle '+hh(c.at)}</small></span></div>`});
+ a+=`</div>`;
+ let c2='';const pc=mineC.filter(c=>c.done&&!c.conf);
+ pc.forEach(c=>{c2+=`<div class="m"><span>${esc(c.text||'')}<br><small class="note">Missione che hai scritto per ${esc(P)}</small></span><button class="sm" data-cc="${c.id}">Confermo</button></div>`});
+ return{sM:a,sC:c2,pend:pc.length}}
+
+function sSerata(open,allOk,okN,nMs,hh){
+ if(!open)return `<div class="card"><div class="tag">la serata</div><div class="m lock">Si apre alle ${hh}</div></div>`;
+ const PL=phs(),cp=curPh(),ix=PL.indexOf(cp),last=ix===PL.length-1,isZ=cp.k==='z',cn=counts(cp.k);
+ const md=!isZ&&drawn.md==='d'?'d':'c';
+ const stp=`<div class="ph" style="--n:${PL.length}">`+PL.map((p,j)=>{const c=counts(p.k);return `<div class="p${j===ix?' on':j<ix?' ok':''}"><b>${p.n}</b><small>${p.k==='z'?c.ds+'/'+c.ts:(c.ds+c.df)+'/'+(c.ts+c.tf)}</small></div>`}).join('')+`</div><div class="pdesc">${esc(cp.d)}</div>`;
+ const sw=isZ?'':`<div class="seg"><button class="alt${md==='c'?' on':''}" data-md="c">Carte</button><button class="alt${md==='d'?' on':''}" data-md="d">Dadi</button></div>`;
+ const gate=allOk?'':`<p class="note">Per giocare devi completare${confOk?' e far confermare':''} tutte le missioni (${okN}/${nMs}).</p>`;
+ const empty=cn.ts+cn.tf===0,done=cn.ds>=cn.ts&&cn.df>=cn.tf;
+ let body='';
+ if(md==='c'){
+  const ldn=lastI>=0&&!isZ&&CARDS[lastI].v===undefined?leaderName(turnN()):'';
+  const chips=lastI>=0&&!tm?`<div class="chips"><button class="alt sm" data-tm="180">⏳ 3 min</button><button class="alt sm" data-tm="300">⏳ 5 min</button><button class="alt sm" data-tm="600">⏳ 10 min</button></div>`:'';
+  body=tcard()+(ldn?`<div class="lead">Guida ${esc(ldn)}</div>`:'')+chips+tmBlock()
+   +`<button id="pk" ${allOk&&cn.ds<cn.ts?'':'disabled'}>${isZ?'Pesca una carta di cenere':'Pesca dal mazzo'} (${cn.ds}/${cn.ts})</button>`
+   +(cn.tf?`<button class="alt" id="mb" ${allOk&&cn.df<cn.tf?'':'disabled'}>Sblocca un «dipende da te» in comune (${cn.df}/${cn.tf})</button>`:'')
+   +gate+(empty?`<p class="note">Nessuna carta in comune per questa fase.</p>`:'')+(done&&!empty?`<p class="note">Hai pescato tutte le carte di questa fase.</p>`:'')}
+ else{
+  const n=drawn.dn||0,Dv=n?diceAt(n):null,V=Dv?[Dv.a.t,Dv.z.n,Dv.d.t,Dv.m]:['?','?','?','?'],ld=n?leaderName(n):'';
+  body=`<div class="dice">${['Azione','Zona','Durata','Modo'].map((l,j)=>`<div class="die${diceFx?' roll':''}" id="dd${j}"><span class="dl">${l}</span><span class="dv" id="dv${j}">${esc(V[j])}</span></div>`).join('')}</div>`
+   +(n?`<div class="dres${diceFx?' pend':''}" id="dr">${esc(diceText(n))}</div>${ld?`<div class="lead">Tocca a ${esc(ld)}</div>`:''}`:`<p class="note" style="text-align:center">Lancia i dadi: ogni lancio vale per tutti e due.</p>`)
+   +(n&&!tm&&Dv.d.s?`<div class="chips"><button class="alt sm" data-tm="${Dv.d.s}">⏳ Avvia il timer (${fmtT(Dv.d.s*1000)})</button></div>`:'')+tmBlock()
+   +`<button id="rd" ${allOk?'':'disabled'}>Lancia i dadi${n?' (lancio '+(n+1)+')':''}</button>`+gate}
+ const nxt=last?null:PL[ix+1],ready=done||empty;
+ const nav=nxt?`<button id="nx" class="${ready?'':'alt'}" ${allOk?'':'disabled'}>${ready?'Passa a':'Salta a'} «${nxt.n}»</button>`:(allOk?`<button id="eb">Concludi la serata</button>`:'');
+ return `<div class="card"><div class="tag">la serata</div>${stp}${sw}${body}${nav}</div>`}
+
 function play(){
- musicStart();
- const now=Date.now()+skip,ms=missions(),P=st.partner.name,ev=st.ev;
- const un=ms.map(m=>ev-m.o*36e5<=now),mine=st.me.done,theirs=st.partner.done;
- const t0=ev-ms[0].o*36e5,tp=Math.max(0,Math.min(1,(now-t0)/(ev-t0)));
- const tension=Math.round((tp*.5+(mine.length+theirs.length)/(ms.length*2)*.5)*100),open=now>=ev;
+ musicStart();wantBeat=true;
+ const T=tinfo(),{now,ms,ev,mine,theirs,un,tension,open}=T,P=st.partner.name;
+ heat=tension/100;lastTs=JSON.stringify([un,open,tension]);
  const hh=new Date(ev).toTimeString().slice(0,5),sim=new Date(now).toTimeString().slice(0,5)+(skip?' (+'+skip/36e5+'h)':'');
- const head=`<div class="hd"><div><div class="tag">tensione condivisa</div><h2>${tension}%</h2></div><button class="alt sm" id="mu">${mMuted()?'🔇 Musica spenta':'🔊 Musica attiva'}</button></div><div class="bar"><i style="width:${tension}%"></i></div>
+ const hl=tension<25?'tiepida':tension<50?'calda':tension<75?'ardente':'incandescente';
+ const head=`<div class="hd"><div><div class="tag">tensione condivisa</div><h2>${tension}%</h2><div class="heatl">${hl}</div></div><div class="bt"><button class="alt sm" id="mu">${mMuted()?'🔇 Musica spenta':'🔊 Musica attiva'}</button><button class="alt sm" id="bt">${beatMuted()?'🤍 Battito spento':'💓 Battito attivo'}</button></div></div><div class="bar${tension>=60?' hot':''}"><i style="width:${tension}%"></i></div>
 <p class="note" style="margin:.2em 0 .6em">Serata alle ${hh}. ${esc(P)} ha completato ${theirs.length} missioni su ${ms.length}.</p>`;
+ const cu=custHtml(P);
  // --- le tue missioni segrete ---
  let sM=`<div class="card"><div class="tag">le tue missioni segrete</div>`;
  ms.forEach((m,k)=>{const at=new Date(ev-m.o*36e5).toTimeString().slice(0,5);const dn=mine.includes(k);
   const cf=conf.got.includes(k),showBtn=confOk?!cf:!dn,txt=esc(m.t.replace(/\{P\}/g,P));
   sM+=un[k]?`<div class="m"><span>${cf?'✓✓ ':dn?'✓ ':''}${txt}${dn&&!cf&&confOk?`<br><small class="note">⏳ In attesa della conferma di ${esc(P)}</small>`:''}${cf?`<br><small class="note">Confermata da ${esc(P)}</small>`:''}</span>${showBtn?`<button class="sm" ${dn?'disabled':`data-d="${k}"`}>Fatto</button>`:''}</div>`
   :`<div class="m lock">Si sblocca alle ${at}</div>`});
- sM+=`</div>`;
+ sM+=`</div>`+cu.sM;
  // --- missioni del partner da confermare ---
  let sC=`<div class="card"><div class="tag">missioni di ${esc(P)} da confermare</div>`;
- if(confOk&&theirs.length){
-  theirs.slice().sort((a,b)=>a-b).forEach(k=>{const g=conf.given.includes(k),tx=esc(ms[k].t.replace(/\{P\}/g,(st.me.name||'te')));
-   sC+=`<div class="m"><span>${g?'✓ ':''}${tx}</span>${g?'':`<button class="sm" data-c="${k}">Confermo</button>`}</div>`})}
+ if((confOk&&theirs.length)||cu.sC){
+  if(confOk)theirs.slice().sort((a,b)=>a-b).forEach(k=>{const g=conf.given.includes(k),tx=esc(ms[k].t.replace(/\{P\}/g,(st.me.name||'te')));
+   sC+=`<div class="m"><span>${g?'✓ ':''}${tx}</span>${g?'':`<button class="sm" data-c="${k}">Confermo</button>`}</div>`});
+  sC+=cu.sC}
  else sC+=`<div class="m lock">Nessuna missione da confermare per ora.</div>`;
  sC+=`</div>`;
- const pending=confOk?theirs.filter(k=>!conf.given.includes(k)).length:0;
+ const pending=(confOk?theirs.filter(k=>!conf.given.includes(k)).length:0)+cu.pend;
  const allOk=confOk?ms.every((m,k)=>conf.got.includes(k)):ms.every((m,k)=>mine.includes(k)),okN=ms.filter((m,k)=>(confOk?conf.got:mine).includes(k)).length;
- const y=shared?shared.s:[],f=shared?shared.f:[];
- const ts=shared?shared.s.length:0,tf=shared?shared.f.length:0;
- const ds=shared?shared.s.filter(i=>drawn.s.includes(i)).length:0,df=shared?shared.f.filter(i=>drawn.f.includes(i)).length:0;
- // --- la serata ---
- const sS=open?`<div class="card"><div class="tag">la serata</div>${tcard()}
-<button id="pk" ${allOk&&ds<ts?'':'disabled'}>Pesca dal mazzo (${ds}/${ts})</button>${tf?`<button class="alt" id="mb" ${allOk&&df<tf?'':'disabled'}>Sblocca un «forse» in comune (${df}/${tf})</button>`:''}${allOk?'':`<p class="note">Per pescare devi completare${confOk?' e far confermare':''} tutte le missioni (${okN}/${ms.length}).</p>`}${ts&&ds>=ts?'<p class="note">Hai pescato tutte le carte del mazzo.</p>':''}${tf&&df>=tf?'<p class="note">Hai sbloccato tutti i «forse» in comune.</p>':''}${allOk&&ds>=ts&&df>=tf?'<button id="eb">Concludi la serata</button>':''}</div>`
- :`<div class="card"><div class="tag">la serata</div><div class="m lock">Si apre alle ${hh}</div></div>`;
+ const y=shared?shared.s:[];
+ const sS=sSerata(open,allOk,okN,ms.length,hh);
  // --- mazzo in comune ---
- const sD=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(i=>`<div class="m mini">${ico(i)}<span>${esc(CARDS[i].t)}</span></div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «forse».</div>'}</div>`;
+ const sD=`<div class="card"><div class="tag">mazzo in comune (${y.length})</div>${y.length?(open?y.map(i=>`<div class="m mini">${ico(i)}<span>${esc(ctext(i))}</span></div>`).join(''):`<div class="m lock">Si apre all'ora della serata</div>`):'<div class="m">Nessuna coincidenza piena: ripensateci con più «dipende da te».</div>'}</div>`;
  // --- menù in alto ---
  const TABS=[['m','Missioni',0],['c','Conferme',pending],['s','Serata',0],['d','Mazzo',0]];
- const nav=`<nav class="tabs">${TABS.map(([k,l,n])=>`<button class="tb${tab===k?' on':''}" data-t="${k}">${l}${n?`<span class="bdg">${n}</span>`:''}</button>`).join('')}</nav>`;
+ const nav=`<nav class="tabs" role="tablist">${TABS.map(([k,l,n])=>`<button class="tb${tab===k?' on':''}" role="tab" aria-selected="${tab===k}" data-t="${k}">${l}${n?`<span class="bdg">${n}</span>`:''}</button>`).join('')}</nav>`;
  const body={m:sM,c:sC,s:sS,d:sD}[tab]||sM;
  return head+nav+body+`
  <button class="alt sm" id="sk">Anteprima: avanza di 2 ore (solo su questo telefono)</button> <span class="note" style="margin:0 8px">🕒 Ora simulata: ${sim}</span> <button class="alt sm" id="lv2">Esci</button>
  ${cxBtn}
  ${pushOk?(store.get('brace-push')===code?'<p class="note">🔔 Notifiche attive su questo telefono.</p>':'<button id="pn">Attiva le notifiche delle missioni</button>'):'<p class="note">Per le notifiche su iPhone: Condividi → «Aggiungi alla schermata Home», poi apri Brace da lì.</p>'}<p class="note err">${esc(err)}</p><p class="note">Brace v${APP_V}</p>`}
+
 function wire(){const q=id=>document.getElementById(id);
  if(fresh&&q('tc')){fresh=false;setTimeout(()=>{const t=q('tc');if(t){t.classList.remove('deal');t.classList.add('open','just')}},520)}
- $.querySelectorAll('.tp').forEach(d=>d.onchange=()=>{const[a,b]=d.querySelectorAll('select'),v=a.value+':'+b.value,f=F();if(d.dataset.key==='hr'){f.hr=v;if(!f.touched)f.times=defTimes(f.n,f.hr);draw()}else{f.times[+d.dataset.key]=v;f.touched=true}});
+ if(diceFx&&q('dr')){diceFx=false;animDice()}
+ // foil: la luce scivola sulla carta seguendo il dito
+ const tc=q('tc');if(tc){const mv=e=>{const r=tc.getBoundingClientRect(),x=Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)),y=Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100));tc.classList.add('pt');tc.style.setProperty('--fx',x+'%');tc.style.setProperty('--fy',y+'%')};tc.addEventListener('pointermove',mv);tc.addEventListener('pointerdown',mv)}
+ $.querySelectorAll('.tp').forEach(d=>d.onchange=()=>{const[a,b]=d.querySelectorAll('select'),v=a.value+':'+b.value,f=F();
+  if(d.dataset.key==='cm'){cmTime=v;return}
+  if(d.dataset.key==='hr'){f.hr=v;if(!f.touched)f.times=defTimes(f.n,f.hr);draw()}else{f.times[+d.dataset.key]=v;f.touched=true}});
  if(q('fv'))q('fv').onchange=()=>{F().fv=q('fv').checked};
  if(q('lv'))q('lv').onchange=()=>{const f=F();f.lv=q('lv').checked;fixPicks(f);draw()};
  if(q('ps'))q('ps').onchange=()=>{F().ps=q('ps').checked};
@@ -450,10 +900,19 @@ function wire(){const q=id=>document.getElementById(id);
  if(q('gj'))q('gj').onclick=()=>{hm='join';draw()};
  if(q('bk'))q('bk').onclick=()=>{hm=null;err='';draw()};
  if(q('pn'))q('pn').onclick=()=>enablePush().catch(fail);
- $.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=deck()[qi];if(b.dataset.a!=='m')tmp[b.dataset.a].push(i);qi++;fx=true;
+ // risposte al questionario: con i ruoli «farlo / riceverlo / entrambi» si inviano le carte virtuali (A/B) che si incrociano con quelle dell'altro
+ $.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=deck()[qi],a=b.dataset.a;
+  if(a!=='m'){
+   if(isRole(i)){
+    if(a==='f')tmp.f.push(VID[i+'A'],VID[i+'B']);
+    else{const lo=iAmLo(),gv=a==='g'||a==='b',rv=a==='r'||a==='b';
+     if(gv)tmp.s.push(VID[i+(lo?'A':'B')]);if(rv)tmp.s.push(VID[i+(lo?'B':'A')])}}
+   else tmp[a==='f'?'f':'s'].push(i)}
+  qi++;fx=true;
   if(qi>=deck().length){draw();rpc('brace_submit_answers',{p_code:code,p_player:pid,p_s:tmp.s,p_f:tmp.f}).then(poll).catch(fail)}else draw()});
  $.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const k=+b.dataset.d;st.me.done=[...st.me.done,k];draw();rpc('brace_mark_done',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
  if(q('mu'))q('mu').onclick=musicToggle;
+ if(q('bt'))q('bt').onclick=beatToggle;
  if(q('eb'))q('eb').onclick=endGame;
  if(q('xe'))q('xe').onclick=closeNight;
  if(q('xb'))q('xb').onclick=()=>{endMode=false;store.del('brace-end-'+code);draw()};
@@ -463,13 +922,31 @@ function wire(){const q=id=>document.getElementById(id);
  $.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;draw();window.scrollTo(0,0)});
  $.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const k=+b.dataset.c;conf.given=[...conf.given,k];draw();rpc('brace_confirm',{p_code:code,p_player:pid,p_k:k}).catch(fail)});
  if(q('sk'))q('sk').onclick=()=>{skip+=72e5;draw()};
- if(q('pk'))q('pk').onclick=()=>{const r=shared.s.filter(i=>!drawn.s.includes(i));if(!r.length)return;
-  const i=r[Math.floor(Math.random()*r.length)];drawn.s.push(i);lastI=i;lastMaybe=false;fresh=true;saveDrawn();draw()};
- if(q('mb'))q('mb').onclick=()=>{const r=shared.f.filter(i=>!drawn.f.includes(i));if(!r.length)return;
-  const i=r[Math.floor(Math.random()*r.length)];drawn.f.push(i);lastI=i;lastMaybe=true;fresh=true;saveDrawn();draw()}}
+ if(q('pk'))q('pk').onclick=()=>pickNext('s');
+ if(q('mb'))q('mb').onclick=()=>pickNext('f');
+ if(q('nx'))q('nx').onclick=nextPhase;
+ $.querySelectorAll('[data-md]').forEach(b=>b.onclick=()=>{drawn.md=b.dataset.md;tm=null;saveDrawn();draw()});
+ if(q('rd'))q('rd').onclick=rollDice;
+ $.querySelectorAll('[data-tm]').forEach(b=>b.onclick=()=>tmStart(+b.dataset.tm));
+ if(q('tmx'))q('tmx').onclick=tmStop;
+ // missioni personalizzate
+ if(q('cmt'))q('cmt').oninput=()=>{cmText=q('cmt').value};
+ if(q('cms'))q('cms').onclick=custAdd;
+ $.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>custAct(+b.dataset.cd,'done'));
+ $.querySelectorAll('[data-cc]').forEach(b=>b.onclick=()=>custAct(+b.dataset.cc,'confirm'))}
+
+// la luce della carta segue anche l'inclinazione del telefono (dove il browser lo permette senza chiedere nulla)
+window.addEventListener('deviceorientation',e=>{const t=document.getElementById('tc');if(!t||!t.classList.contains('open')||e.gamma==null)return;
+ const x=50+Math.max(-35,Math.min(35,e.gamma))*1.3,y=50+Math.max(-35,Math.min(35,(e.beta||0)-45))*1.3;
+ t.classList.add('pt');t.style.setProperty('--fx',x+'%');t.style.setProperty('--fy',y+'%')},{passive:true});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&wantBeat)beatLoop()});
 draw();
 if(code){poll();startTimer()}
-setInterval(()=>{if(st&&st.partner&&st.me.fin&&st.partner.fin)draw()},60000);
+// ridisegna solo quando cambia qualcosa legato all'ora (missione sbloccata, serata aperta, tensione), mai mentre stai scrivendo
+setInterval(()=>{if(!(code&&st&&st.partner&&st.me.fin&&st.partner.fin)||endMode)return;
+ const T=tinfo();if(JSON.stringify([T.un,T.open,T.tension])===lastTs)return;
+ const a=document.activeElement;if(a&&$.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return;draw()},15000);
+
 </script>
 </body>
 </html>
